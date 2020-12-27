@@ -6,4 +6,9 @@ export default class Hand extends NonSharedZone {
     constructor(owner: Player, cards?: CardInstance[]) {
         super(false, false, owner, cards);
     }
+
+    addCards(cards: CardInstance[]): void {
+        const currentHand = this.getCards();
+        cards.forEach((newCard) => currentHand.push(newCard));
+    }
 }

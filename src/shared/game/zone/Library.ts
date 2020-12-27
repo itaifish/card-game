@@ -3,6 +3,7 @@ import Player from "../player/Player";
 import CardInstance from "../card/CardInstance";
 import MathUtility from "../../utility/math";
 import Hand from "./Hand";
+import { GameEvent } from "../../utility/EventEmitter";
 
 export default class Library extends NonSharedZone {
     constructor(owner: Player, cards: CardInstance[]) {
@@ -20,10 +21,15 @@ export default class Library extends NonSharedZone {
         }
     };
 
-    draw = (amount = 1, hand: Hand): void => {
+    draw = (hand: Hand, amount = 1): void => {
         // TODO: Trigger draw replacement effects
         const cards = this.getCards();
-
-        // TODO: Trigger static "Whenever x draws a card"
+        if (amount > this.getSize()) {
+            amount = this.getSize();
+            this.emit(GameEvent.DRAW_PAST_DECK);
+        }
+        const cardsToGoToHand = cards.splice(cards.length - amount);
+        hand.addCards(cardsToGoToHand);
+        this.emit(GameEvent.PLAYER_DRAW);
     };
 }

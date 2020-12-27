@@ -2,16 +2,19 @@ import Library from "../../../../../src/shared/game/zone/Library";
 import Player from "../../../../../src/shared/game/player/Player";
 import CardInstance, { CardState, copyPile } from "../../../../../src/shared/game/card/CardInstance";
 import CardOracle from "../../../../../src/shared/game/card/CardOracle";
+import Hand from "../../../../../src/shared/game/zone/Hand";
+import { GameEvent } from "../../../../../src/shared/utility/EventEmitter";
+import log from "../../../../../src/shared/utility/logger";
 
 describe("Library", () => {
+    const defaultState: CardState = { counters: [], types: [] };
+    const cardNames = ["Island", "Swamp", "Forest", "Mountain", "Plains"];
+    const cards: CardInstance[] = cardNames
+        .map((cardName) => CardOracle.cardList[cardName])
+        .map((card) => ({ card: card, state: defaultState }));
+    const owner = new Player(0, cards);
+    const library = new Library(owner, copyPile(cards));
     test("testShuffle", () => {
-        const defaultState: CardState = { counters: [], types: [] };
-        const cardNames = ["Island", "Swamp", "Forest", "Mountain", "Plains"];
-        const cards: CardInstance[] = cardNames
-            .map((cardName) => CardOracle.cardList[cardName])
-            .map((card) => ({ card: card, state: defaultState }));
-        const owner = new Player(0, cards);
-        const library = new Library(owner, copyPile(cards));
         const unShuffledCards: number[] = new Array(cards.length).fill(0);
         const numTestRuns = 100;
         // There is a 1-in-x chance a card gets its own spot again. If a card appears in the same spot at
@@ -43,5 +46,19 @@ describe("Library", () => {
                 console.log(`Failure rate for ${cards[index].card.name}: ${(failureRate * 100).toPrecision(4)}%`);
             }
         });
+    });
+    test("testDraw", () => {
+        const hand = new Hand(owner);
+        library.draw(hand);
+        expect(hand.getSize()).toBe(1);
+        expect(library.getSize()).toBe(cards.length - 1);
+        let fail = true;
+        library.on(GameEvent.DRAW_PAST_DECK, () => {
+            fail = false;
+        });
+        library.draw(hand, library.getSize() + 1);
+        expect(fail).toBe(false);
+        expect(library.getSize()).toBe(0);
+        expect(hand.getSize()).toBe(cards.length);
     });
 });

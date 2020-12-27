@@ -3,7 +3,8 @@ import Player from "../player/Player";
 import Hand from "../zone/Hand";
 import Library from "../zone/Library";
 import Exile from "../zone/Exile";
-import CardInstance, { copyInstance, copyPile } from "../card/CardInstance";
+import CardInstance, { copyPile } from "../card/CardInstance";
+import { GameEvent } from "../../utility/EventEmitter";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -23,10 +24,14 @@ export default class GameManager {
         this.playerZoneMap = {};
         players.forEach((player) => {
             const copiedLibrary: CardInstance[] = copyPile(player.getStartingLibrary());
+            const newLibrary = new Library(player, copiedLibrary);
+            newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
+                // TODO: Player loses game
+            });
             this.playerZoneMap[player.getId()] = {
                 graveyard: new Graveyard(player),
                 hand: new Hand(player),
-                library: new Library(player, copiedLibrary),
+                library: newLibrary,
                 exile: new Exile(player),
             };
         });

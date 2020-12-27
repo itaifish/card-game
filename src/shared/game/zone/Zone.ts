@@ -1,6 +1,7 @@
 import CardInstance from "../card/CardInstance";
+import EventEmitter from "../../utility/EventEmitter";
 
-export default abstract class Zone {
+export default abstract class Zone extends EventEmitter {
     private isPublic: boolean;
     private isShared: boolean;
     private isOrdered: boolean;
@@ -14,6 +15,7 @@ export default abstract class Zone {
      * @param cards List of cards in the zone
      */
     protected constructor(isPublic: boolean, isShared: boolean, isOrdered: boolean, cards?: Zone | CardInstance[]) {
+        super();
         this.isShared = isShared;
         this.isPublic = isPublic;
         this.isOrdered = isOrdered;
@@ -30,5 +32,9 @@ export default abstract class Zone {
 
     getCards = (): CardInstance[] => {
         return this.cards;
+    };
+
+    getSize = (): number => {
+        return this.getCards().length;
     };
 }

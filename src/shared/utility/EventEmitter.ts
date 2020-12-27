@@ -1,20 +1,27 @@
 import log, { LOG_LEVEL } from "./logger";
 import uuid4 from "uuid4";
 
-enum Event {
+export enum GameEvent {
     PLAYER_DRAW,
     BEGIN_END_STEP,
+    DRAW_PAST_DECK,
+    LIFE_BELOW_ZERO,
 }
 
 type Callback = (...args: any[]) => void;
 
 export default abstract class EventEmitter {
-    private readonly events: Map<Event, Map<string, Callback>>;
-    private readonly idToEvent: Map<string, Event>;
+    private readonly events: Map<GameEvent, Map<string, Callback>>;
+    private readonly idToEvent: Map<string, GameEvent>;
 
     protected constructor() {
-        this.events = new Map<Event, Map<string, Callback>>();
-        this.idToEvent = new Map<string, Event>();
+        this.events = new Map<GameEvent, Map<string, Callback>>();
+        for (const event of Object.values(GameEvent)) {
+            if (typeof event != "string") {
+                this.events.set(event, new Map<string, Callback>());
+            }
+        }
+        this.idToEvent = new Map<string, GameEvent>();
     }
 
     clearEvent(id: string): void {
@@ -32,7 +39,7 @@ export default abstract class EventEmitter {
      * @param emittedEvent event to listen for
      * @param callback the function to call when the event is emitted
      */
-    on(emittedEvent: Event, callback: Callback): string {
+    on(emittedEvent: GameEvent, callback: Callback): string {
         const id: string = uuid4();
         this.events.get(emittedEvent).set(id, callback);
         this.idToEvent.set(id, emittedEvent);
@@ -44,7 +51,7 @@ export default abstract class EventEmitter {
      * @param emittedEvent event to listen for
      * @param callback the function to call when the event is emitted
      */
-    once(emittedEvent: Event, callback: Callback): void {
+    once(emittedEvent: GameEvent, callback: Callback): void {
         const id = this.on(emittedEvent, () => {
             log("This function should never be called", this.constructor.name, LOG_LEVEL.ERROR);
         });
@@ -54,7 +61,7 @@ export default abstract class EventEmitter {
         });
     }
 
-    emit(event: Event): void {
+    emit(event: GameEvent): void {
         this.events.get(event).forEach((callback) => {
             callback();
         });
