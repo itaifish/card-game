@@ -18,7 +18,7 @@ export interface CardState {
 export interface Card {
     name: string;
     manaCost: string;
-    isToken: boolean;
+    isToken?: boolean;
 }
 
 export const copyInstance = (cardToCopy: CardInstance, preserveState = false): CardInstance => {
