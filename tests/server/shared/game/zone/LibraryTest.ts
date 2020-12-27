@@ -12,11 +12,11 @@ describe("Library", () => {
             .map((card) => ({ card: card, state: defaultState }));
         const owner = new Player(0, cards);
         const library = new Library(owner, copyPile(cards));
-        const unShuffledCards = new Array(cards.length);
+        const unShuffledCards: number[] = new Array(cards.length).fill(0);
         const numTestRuns = 100;
         // There is a 1-in-x chance a card gets its own spot again. If a card appears in the same spot at
-        // more than 4 times its expected chance, it is likely the shuffler has a problem
-        const acceptableFailureRate = (1 / cards.length) * 4;
+        // more than 3 times its expected chance, it is likely the shuffler has a problem
+        const acceptableFailureRate = 3 * (1 / cards.length);
         for (let i = 0; i < numTestRuns; i++) {
             const oldLibrary = copyPile(library.getCards());
             library.shuffle();
@@ -31,8 +31,16 @@ describe("Library", () => {
             const failureRate = amountOfUnshuffles / numTestRuns;
             if (amountOfUnshuffles == 0 || failureRate > acceptableFailureRate) {
                 fail(
-                    `Card ${cards[index].card.name} ended up in the same spot as before ${amountOfUnshuffles} time(s). This is a failure rate of ${failureRate}%, which is not within the acceptable rate of${acceptableFailureRate}%`,
+                    `Card ${
+                        cards[index].card.name
+                    } ended up in the same spot as before ${amountOfUnshuffles} time(s). This is a failure rate of ${(
+                        failureRate * 100
+                    ).toPrecision(4)}%, which is not within the acceptable rate of ${(
+                        acceptableFailureRate * 100
+                    ).toPrecision(4)}%`,
                 );
+            } else {
+                console.log(`Failure rate for ${cards[index].card.name}: ${(failureRate * 100).toPrecision(4)}%`);
             }
         });
     });
