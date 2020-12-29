@@ -14,16 +14,12 @@ import {
     JoinLobbyRequest,
 } from "../shared/communication/messageInterfaces/lobbyMessage";
 import UserManager from "./manager/userManager";
-import LobbyManger from "./manager/lobbyManager";
+import LobbyManger from "./manager/LobbyManager";
 import log, { LOG_LEVEL } from "../shared/utility/logger";
-import GamesManager from "./manager/gamesManager";
-import InputMessageRequest, { ACTION_TYPE } from "../shared/communication/messageInterfaces/inputMessage";
-import SpecialAction from "../shared/game/move/specialAction";
-import { EndTurnRequest, GameStateResponse } from "../shared/communication/messageInterfaces/endTurnMessage";
-import GameOverMessage from "../shared/communication/messageInterfaces/gameOverMessage";
-import ServerStatsMessage from "../shared/communication/messageInterfaces/serverStatsMessage";
+import GamesManager from "./manager/GamesManager";
+import { GameStateResponse } from "../shared/communication/messageInterfaces/endTurnMessage";
 
-class Server {
+export default class Server {
     // Server Variables
     app: express.Express;
     port: string | number;
@@ -33,13 +29,6 @@ class Server {
     userManager: UserManager;
     lobbyManager: LobbyManger;
     gamesManager: GamesManager;
-
-    gameTurnLoops: {
-        [gameId: string]: {
-            timeOut: NodeJS.Timeout;
-            endTime: number;
-        };
-    };
 
     constructor() {
         this.app = express();
@@ -52,20 +41,6 @@ class Server {
         this.userManager = new UserManager();
         this.lobbyManager = new LobbyManger();
         this.gamesManager = new GamesManager(this.userManager);
-        this.gameTurnLoops = {};
-    }
-
-    endTurn(gameId: string): void {
-        log(`Ending the turn for game ${gameId}`, this.constructor.name, LOG_LEVEL.INFO);
-        const gameState = this.gamesManager.endTurnAndGetGameState(gameId);
-        if (this.gameTurnLoops[gameId]?.endTime) {
-            this.gameTurnLoops[gameId].endTime =
-                new Date().getTime() + this.gamesManager.lobbyMap[gameId].settings.turnTime;
-        }
-        const response: GameStateResponse = {
-            gameState: gameState,
-        };
-        this.io.to(this.gamesManager.lobbyMap[gameId].getRoomName()).emit(MessageEnum.END_TURN_SIGNAL, response);
     }
 
     listen(): void {
@@ -171,126 +146,6 @@ class Server {
                     );
                     this.io.to(lobby.getRoomName()).emit(MessageEnum.START_GAME, response);
                     this.lobbyManager.deleteLobby(lobby.id);
-                }
-            });
-            socket.on(MessageEnum.PLAYER_INPUT, (inputMessageRequest: InputMessageRequest) => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                } else {
-                    log(
-                        `Adding player ${user.id}'s move to: ${JSON.stringify(
-                            inputMessageRequest.action.targetedCoordinates,
-                        )}`,
-                        this.constructor.name,
-                        LOG_LEVEL.INFO,
-                    );
-                    if (inputMessageRequest.actionType == ACTION_TYPE.SPECIAL) {
-                        this.gamesManager.addPlayerSpecial(user.id, inputMessageRequest.action as SpecialAction);
-                    } else {
-                        this.gamesManager.addPlayerMove(user.id, inputMessageRequest.action);
-                    }
-                }
-            });
-            socket.on(MessageEnum.END_TURN_SIGNAL, (endTurnRequest: EndTurnRequest) => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    return socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                }
-                const game = this.gamesManager.playerToGameManager(user.id);
-                if (game) {
-                    this.gamesManager.playerSendsEndTurnSignal(user.id, endTurnRequest.playerHasEndedTurn);
-                    if (this.gamesManager.allPlayersHaveEndedTurn(game.gameId)) {
-                        const intervalLoop = this.gameTurnLoops[game.gameId];
-                        // if not the first turn, reset game interval loop
-                        if (intervalLoop) {
-                            clearInterval(intervalLoop.timeOut);
-                        }
-                        const turnTime = this.gamesManager.lobbyMap[game.gameId].settings.turnTime;
-                        if (turnTime > 0) {
-                            this.gameTurnLoops[game.gameId] = {
-                                endTime: new Date().getTime() + turnTime,
-                                timeOut: setInterval(() => {
-                                    this.endTurn(game.gameId);
-                                }, turnTime),
-                            };
-                        }
-
-                        this.endTurn(game.gameId);
-                    }
-                } else {
-                    const msg: GameOverMessage = {
-                        winner: "Not you lmao",
-                    };
-                    return socket.emit(MessageEnum.GAME_HAS_ENDED, msg);
-                }
-            });
-            socket.on(MessageEnum.GET_TIME_REMAINING, () => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                } else {
-                    const game = this.gamesManager.playerToGameManager(user.id);
-                    const endTime = this.gameTurnLoops[game.gameId]?.endTime;
-                    socket.emit(MessageEnum.GET_TIME_REMAINING, endTime || 0);
-                }
-            });
-            socket.on(MessageEnum.RESET_PLAYER_MOVES, () => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                } else {
-                    const state = this.gamesManager.resetPlayerMoves(user.id);
-                    const response: GameStateResponse = {
-                        gameState: state,
-                    };
-                    socket.emit(MessageEnum.RESET_PLAYER_MOVES, response);
-                }
-            });
-            socket.on(MessageEnum.CONCEDE, () => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                } else {
-                    const winner = this.gamesManager.gameOver(user.id);
-                    if (winner) {
-                        let usersUsername = "nobody";
-                        if (winner.winnerId) {
-                            usersUsername = this.userManager.getUserFromUserId(winner.winnerId).username;
-                        } else {
-                            log(
-                                `No user winning for game ${JSON.stringify(winner)}`,
-                                this.constructor.name,
-                                LOG_LEVEL.WARN,
-                            );
-                        }
-                        const gameOverResponse: GameOverMessage = {
-                            winner: usersUsername,
-                        };
-                        this.io.to(winner.roomName).emit(MessageEnum.GAME_HAS_ENDED, gameOverResponse);
-                        this.io
-                            .of("/")
-                            .in(winner.roomName)
-                            .clients((error: Error, socketIds: string[]) => {
-                                if (error) throw error;
-                                socketIds.forEach((socketId) =>
-                                    this.io.sockets.sockets[socketId].leave(winner.roomName),
-                                );
-                            });
-                    }
-                }
-            });
-            socket.on(MessageEnum.GET_SERVER_STATS, () => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                if (!user) {
-                    socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
-                } else {
-                    const serverStats: ServerStatsMessage = {
-                        numberOfGames: Object.keys(this.gamesManager.lobbyToGameManagerMap).length,
-                        numberOfLobbies: Object.keys(this.lobbyManager.lobbyMap).length,
-                        username: user.username,
-                    };
-                    socket.emit(MessageEnum.GET_SERVER_STATS, serverStats);
                 }
             });
             // Default behaviors

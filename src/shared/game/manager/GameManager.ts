@@ -5,6 +5,7 @@ import Library from "../zone/Library";
 import Exile from "../zone/Exile";
 import CardInstance, { copyPile } from "../card/CardInstance";
 import { GameEvent } from "../../utility/EventEmitter";
+import Server from "../../../server/server";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -13,27 +14,29 @@ interface PlayerZones {
     exile: Exile;
 }
 
-interface PlayerToZoneMap {
-    [playerId: number]: PlayerZones;
-}
-
 export default class GameManager {
-    private readonly playerZoneMap: PlayerToZoneMap;
+    private readonly playerZoneMap: Map<number, PlayerZones>;
 
-    constructor(players: Player[]) {
-        this.playerZoneMap = {};
+    private readonly playerList: Player[];
+
+    private readonly gameId: string;
+
+    constructor(gameId: string, server: Server, players: Player[]) {
+        this.gameId = gameId;
+        this.playerZoneMap = new Map<number, PlayerZones>();
+        this.playerList = players;
         players.forEach((player) => {
             const copiedLibrary: CardInstance[] = copyPile(player.getStartingLibrary());
             const newLibrary = new Library(player, copiedLibrary);
             newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
                 // TODO: Player loses game
             });
-            this.playerZoneMap[player.getId()] = {
+            this.playerZoneMap.set(player.getId(), {
                 graveyard: new Graveyard(player),
                 hand: new Hand(player),
                 library: newLibrary,
                 exile: new Exile(player),
-            };
+            });
         });
     }
 }
