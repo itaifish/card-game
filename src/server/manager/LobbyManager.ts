@@ -67,4 +67,8 @@ export default class LobbyManger {
             });
         }
     }
+
+    userToLobby(userId: number): Lobby {
+        return this.usersToLobbyMap.get(userId);
+    }
 }

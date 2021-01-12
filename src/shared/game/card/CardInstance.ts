@@ -14,7 +14,8 @@ export enum CardType {
 export interface CardState {
     counters: Counter[];
     types: CardType[];
-    hiddenFromOwner?: boolean; // default false
+    owner: Player;
+    controller?: Player; //default the owner
     revealedTo?: Player[]; // default based on zone
 }
 
@@ -25,18 +26,16 @@ export interface Card {
 }
 
 export const copyInstance = (cardToCopy: CardInstance, preserveState = false): CardInstance => {
+    // Note that `[...array]` will preform a shallow copy of an array. `arr.slice()` would work as well
     const copiedState: CardState = {
         counters: preserveState ? [...cardToCopy.state.counters] : [],
         types: [...cardToCopy.state.types],
+        owner: cardToCopy.state.owner,
     };
-    if (cardToCopy.state.hiddenFromOwner) {
-        copiedState.hiddenFromOwner = cardToCopy.state.hiddenFromOwner;
-    }
-    if (cardToCopy.state.revealedTo) {
+    if (preserveState && cardToCopy.state.revealedTo) {
         copiedState.revealedTo = [...cardToCopy.state.revealedTo];
     }
     return {
-        // Note that `[...array]` will preform a shallow copy of the array. `arr.slice()` would work as well
         state: copiedState,
         card: cardToCopy.card,
     };

@@ -1,4 +1,4 @@
-import { User, UserStatus } from "../manager/userManager";
+import { User, UserStatus } from "../manager/userPlayerManager";
 
 export default class DatabaseReader {
     loadUsers(): User[] {

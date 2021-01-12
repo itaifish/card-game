@@ -1,18 +1,18 @@
 import LobbyManger from "./LobbyManager";
 import Lobby from "../room/lobby/Lobby";
-import UserManager from "./userManager";
+import UserPlayerManager from "./userPlayerManager";
 import GameManager from "../../shared/game/manager/gameManager";
 import log, { LOG_LEVEL } from "../../shared/utility/logger";
 import Server from "../server";
 
 export default class GamesManager extends LobbyManger {
-    private readonly userManager: UserManager;
+    private readonly userManager: UserPlayerManager;
 
     private readonly server: Server;
 
     lobbyToGameManagerMap: Map<string, GameManager>;
 
-    constructor(userManager: UserManager, server: Server) {
+    constructor(userManager: UserPlayerManager, server: Server) {
         super();
         this.userManager = userManager;
         this.server = server;

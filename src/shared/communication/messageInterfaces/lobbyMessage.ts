@@ -1,4 +1,5 @@
 import LobbySettings from "../../../server/room/lobby/lobbySettings";
+import Lobby from "../../../server/room/lobby/Lobby";
 
 export interface ClientUser {
     username: string;
@@ -18,7 +19,7 @@ export interface ClientLobby {
 }
 
 export interface GetLobbiesResponse {
-    lobbies: ClientLobby[];
+    lobbies: Lobby[];
 }
 
 export interface LobbyResponse {

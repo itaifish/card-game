@@ -1,5 +1,5 @@
 import LobbyManger from "../../../../src/server/manager/LobbyManager";
-import { User, UserStatus } from "../../../../src/server/manager/userManager";
+import { User, UserStatus } from "../../../../src/server/manager/userPlayerManager";
 import Lobby from "../../../../src/server/room/lobby/Lobby";
 import LobbySettings from "../../../../src/server/room/lobby/lobbySettings";
 

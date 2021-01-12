@@ -1,5 +1,7 @@
 import DatabaseReader from "../database/databaseReader";
 import socketio from "socket.io";
+import Player from "../../shared/game/player/Player";
+import CardInstance from "../../shared/game/card/CardInstance";
 
 export interface User {
     username: string;
@@ -7,6 +9,7 @@ export interface User {
     status: UserStatus;
     id: number;
     socket?: socketio.Socket;
+    player?: Player;
 }
 
 export enum UserStatus {
@@ -16,31 +19,19 @@ export enum UserStatus {
     IN_GAME,
 }
 
-interface UserTokenMap {
-    [key: string]: User;
-}
+export default class UserPlayerManager {
+    userTokenMap: Map<string, User>;
 
-interface UserIdMap {
-    [key: number]: User;
-}
+    userIdMap: Map<number, User>;
 
-interface UserNameMap {
-    [key: string]: User;
-}
-
-export default class UserManager {
-    userTokenMap: UserTokenMap;
-
-    userIdMap: UserIdMap;
-
-    usernamesMap: UserNameMap;
+    usernamesMap: Map<string, User>;
 
     runningId: number;
 
     constructor() {
-        this.userIdMap = {};
-        this.userTokenMap = {};
-        this.usernamesMap = {};
+        this.userIdMap = new Map<number, User>();
+        this.userTokenMap = new Map<string, User>();
+        this.usernamesMap = new Map<string, User>();
         this.loadUsers();
     }
 
@@ -51,8 +42,8 @@ export default class UserManager {
         const reader: DatabaseReader = new DatabaseReader();
         this.runningId = reader.getRunningId();
         reader.loadUsers().forEach((user) => {
-            this.userIdMap[user.id] = user;
-            this.usernamesMap[user.username] = user;
+            this.userIdMap.set(user.id, user);
+            this.usernamesMap.set(user.username, user);
         });
     }
 
@@ -61,7 +52,7 @@ export default class UserManager {
      * @param user The user to create
      */
     createUser(username: string, password: string): boolean {
-        if (this.usernamesMap[username]) {
+        if (this.usernamesMap.has(username)) {
             return false;
         }
         this.runningId += 1;
@@ -71,8 +62,8 @@ export default class UserManager {
             status: UserStatus.OFFLINE,
             id: this.runningId,
         };
-        this.userIdMap[user.id] = user;
-        this.usernamesMap[user.username] = user;
+        this.userIdMap.set(user.id, user);
+        this.usernamesMap.set(user.username, user);
         return true;
     }
 
@@ -83,7 +74,7 @@ export default class UserManager {
      * @param password User's password
      */
     loginUser(username: string, password: string, socket: socketio.Socket): User | false | null {
-        const user: User = this.usernamesMap[username];
+        const user: User = this.usernamesMap.get(username);
         if (user) {
             if (user.password === password) {
                 if (user.status != UserStatus.OFFLINE) {
@@ -91,7 +82,7 @@ export default class UserManager {
                 }
                 user.socket = socket;
                 user.status = UserStatus.ONLINE;
-                this.userTokenMap[socket.id] = user;
+                this.userTokenMap.set(socket.id, user);
                 return user;
             }
             return false;
@@ -104,9 +95,9 @@ export default class UserManager {
      * @param username Username of user to log out
      */
     logoutUser(username: string): boolean {
-        const user = this.usernamesMap[username];
+        const user = this.usernamesMap.get(username);
         if (user) {
-            delete this.userTokenMap[user.socket.id];
+            this.userTokenMap.delete(user.socket.id);
             user.status = UserStatus.OFFLINE;
             user.socket = null;
             return true;
@@ -115,11 +106,11 @@ export default class UserManager {
     }
 
     getUserFromSocketId(socketId: string): User {
-        return this.userTokenMap[socketId];
+        return this.userTokenMap.get(socketId);
     }
 
     getUserFromUserId(userId: number): User {
-        return this.userIdMap[userId];
+        return this.userIdMap.get(userId);
     }
 
     /**
@@ -135,5 +126,12 @@ export default class UserManager {
         } else {
             return false;
         }
+    }
+
+    createPlayerFromUser(user: User | number, startingLibrary: CardInstance[]): User {
+        const userId = typeof user == "number" ? user : user.id;
+        const userObj = this.getUserFromUserId(userId);
+        userObj.player = new Player(userId, startingLibrary);
+        return userObj;
     }
 }

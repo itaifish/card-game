@@ -13,7 +13,7 @@ import {
     GetLobbiesResponse,
     JoinLobbyRequest,
 } from "../shared/communication/messageInterfaces/lobbyMessage";
-import UserManager from "./manager/userManager";
+import UserPlayerManager from "./manager/userPlayerManager";
 import LobbyManger from "./manager/LobbyManager";
 import log, { LOG_LEVEL } from "../shared/utility/logger";
 import GamesManager from "./manager/GamesManager";
@@ -26,7 +26,7 @@ export default class Server {
     httpServer: http.Server;
     io: socketio.Server;
     //Managers
-    userManager: UserManager;
+    userManager: UserPlayerManager;
     lobbyManager: LobbyManger;
     gamesManager: GamesManager;
 
@@ -38,9 +38,9 @@ export default class Server {
         this.httpServer = new http.Server(this.app);
         this.io = new socketio(this.httpServer);
 
-        this.userManager = new UserManager();
+        this.userManager = new UserPlayerManager();
         this.lobbyManager = new LobbyManger();
-        this.gamesManager = new GamesManager(this.userManager);
+        this.gamesManager = new GamesManager(this.userManager, this);
     }
 
     listen(): void {
@@ -70,17 +70,16 @@ export default class Server {
                 };
                 if (userResult) {
                     responseMessage.id = userResult.id;
-                    const usersLobby = this.gamesManager.usersToLobbyMap[userResult.id];
-                    const usersGame = this.gamesManager.lobbyToGameManagerMap[usersLobby?.id];
+                    const usersGame = this.gamesManager.playerToGameManager(userResult.id);
                     // rejoin left game
                     if (usersGame) {
-                        socket.join(usersLobby.getRoomName());
-                        responseMessage.gameStateToRejoin = {
-                            gameState: usersGame.boardState,
-                            gameId: usersGame.gameId,
-                        };
-                        // reset moves so player is seeing same thing as server
-                        usersGame.resetPlayerMoves(userResult.id);
+                        // socket.join(usersLobby.getRoomName());
+                        // responseMessage.gameStateToRejoin = {
+                        //     gameState: usersGame.boardState,
+                        //     gameId: usersGame.gameId,
+                        // };
+                        // // reset moves so player is seeing same thing as server
+                        // usersGame.resetPlayerMoves(userResult.id);
                     }
                 }
                 socket.emit(MessageEnum.LOGIN, responseMessage);
@@ -95,59 +94,15 @@ export default class Server {
                 if (!user) {
                     return socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
                 }
-                const createdLobby = this.lobbyManager.userCreateLobby(user, lobbyRequest.lobbySettings);
-                log(`${user.username} has created lobby ${createdLobby.id}`, this.constructor.name, LOG_LEVEL.INFO);
-                // After creating a lobby respond with a list of all lobbies (Should have new lobby)
-                const response: GetLobbiesResponse = { lobbies: this.lobbyManager.getLobbyList() };
-                socket.join(createdLobby.getRoomName());
-                socket.emit(MessageEnum.GET_LOBBIES, response);
+                // const createdLobby = this.lobbyManager.userCreateLobby(player, lobbyRequest.lobbySettings);
+                // log(`${user.username} has created lobby ${createdLobby.id}`, this.constructor.name, LOG_LEVEL.INFO);
+                // // After creating a lobby respond with a list of all lobbies (Should have new lobby)
+                // const response: GetLobbiesResponse = { lobbies: this.lobbyManager.getLobbyList() };
+                // socket.join(createdLobby.getRoomName());
+                // socket.emit(MessageEnum.GET_LOBBIES, response);
             });
-            socket.on(MessageEnum.JOIN_LOBBY, (joinLobbyRequest: JoinLobbyRequest) => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                log(
-                    `Client ${user.username} attempting to join lobby: ${joinLobbyRequest.lobbyId} on team ${joinLobbyRequest.teamId}`,
-                    this.constructor.name,
-                    LOG_LEVEL.INFO,
-                );
-                const usersCurrentLobby = this.lobbyManager.usersToLobbyMap[user.id];
-                if (usersCurrentLobby) {
-                    // User already exist, remove them from room
-                    socket.leave(usersCurrentLobby.getRoomName());
-                }
-                // disconnect player first
-                this.lobbyManager.playerDisconnects(user);
-                const joinedLobby = this.lobbyManager.userJoinTeamInLobby(
-                    user,
-                    joinLobbyRequest.lobbyId,
-                    joinLobbyRequest.teamId,
-                );
-                const response: GetLobbiesResponse = { lobbies: this.lobbyManager.getLobbyList() };
-                // After joining a lobby respond with a list of all lobbies (Should have new lobby)
-                if (joinedLobby) {
-                    socket.join(joinedLobby.getRoomName());
-                    this.io.to(joinedLobby.getRoomName()).emit(MessageEnum.GET_LOBBIES, response);
-                } else {
-                    socket.emit(MessageEnum.GET_LOBBIES, response);
-                }
-            });
-            socket.on(MessageEnum.START_GAME, () => {
-                const user = this.userManager.getUserFromSocketId(socket.id);
-                const lobby = this.lobbyManager.usersToLobbyMap[user.id];
-                if (lobby.lobbyLeader == user.id) {
-                    const createdManager = this.gamesManager.lobbyToGame(lobby);
-                    const response: GameStateResponse = {
-                        gameState: createdManager.boardState,
-                        gameId: createdManager.gameId,
-                    };
-                    log(
-                        `Sending boardstate and game start info to clients for lobby ${createdManager.gameId}`,
-                        this.constructor.name,
-                        LOG_LEVEL.INFO,
-                    );
-                    this.io.to(lobby.getRoomName()).emit(MessageEnum.START_GAME, response);
-                    this.lobbyManager.deleteLobby(lobby.id);
-                }
-            });
+            socket.on(MessageEnum.JOIN_LOBBY, (joinLobbyRequest: JoinLobbyRequest) => {});
+            socket.on(MessageEnum.START_GAME, () => {});
             // Default behaviors
             socket.on(MessageEnum.DISCONNECT, (reason: string) => {
                 log(`Client disconnected with reason ${reason}`, this.constructor.name, LOG_LEVEL.INFO);

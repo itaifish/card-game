@@ -3,7 +3,7 @@ import uuid4 from "uuid4";
 
 export enum GameEvent {
     PLAYER_DRAW,
-    BEGIN_END_STEP,
+    BEGIN_STEP,
     DRAW_PAST_DECK,
     LIFE_BELOW_ZERO,
 }
@@ -61,9 +61,9 @@ export default abstract class EventEmitter {
         });
     }
 
-    emit(event: GameEvent): void {
+    emit(event: GameEvent, ...args: any): void {
         this.events.get(event).forEach((callback) => {
-            callback();
+            callback(...args);
         });
     }
 }
