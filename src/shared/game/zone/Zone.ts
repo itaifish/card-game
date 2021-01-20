@@ -37,4 +37,16 @@ export default abstract class Zone extends EventEmitter {
     getSize = (): number => {
         return this.getCards().length;
     };
+
+    addCard = (card: CardInstance): void => {
+        this.cards.push(card);
+    };
+
+    removeCard = (cardId: string): CardInstance | null => {
+        const cardIndex = this.cards.findIndex((card) => card.state.id == cardId);
+        if (cardIndex != -1) {
+            return this.cards.splice(cardIndex, 1)[0];
+        }
+        return null;
+    };
 }
