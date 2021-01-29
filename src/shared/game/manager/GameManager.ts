@@ -4,12 +4,14 @@ import Hand from "../zone/Hand";
 import Library from "../zone/Library";
 import Exile from "../zone/Exile";
 import Stack from "../zone/Stack";
-import CardInstance, { CardType, copyPile, isPermanent } from "../card/CardInstance";
+import CardInstance, { CardType, copyPile, isCreature, isPermanent } from "../card/CardInstance";
 import EventEmitter, { GameEvent } from "../../utility/EventEmitter";
 import Server from "../../../server/server";
 import { nextStep, Step } from "../phase/Phase";
 import log, { LOG_LEVEL } from "../../utility/logger";
 import Battlefield from "../zone/Battlefield";
+import GameSettings from "../settings/GameSettings";
+import { AbilityKeyword } from "../card/AbilityKeywords";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -32,7 +34,7 @@ export default class GameManager extends EventEmitter {
 
     private readonly playerList: Player[];
 
-    private readonly turnNumber: number;
+    private turnNumber: number;
 
     private playersTurnIndex: number;
 
@@ -44,7 +46,7 @@ export default class GameManager extends EventEmitter {
 
     private priorityWaitingOn: Player[];
 
-    constructor(gameId: string, server: Server, players: Player[]) {
+    constructor(gameId: string, server: Server, players: Player[], settings: GameSettings) {
         super();
         this.gameId = gameId;
         this.playerZoneMap = new Map<number, PlayerZones>();
@@ -68,6 +70,7 @@ export default class GameManager extends EventEmitter {
                 exile: new Exile(player),
                 battlefield: new Battlefield(player),
             });
+            player.setLife(settings.startingLife);
         });
     }
 
@@ -99,11 +102,13 @@ export default class GameManager extends EventEmitter {
                 this.resetPriorityQueue();
             }
         }
+        log(`Active player is now ${this.priorityWaitingOn[0].getId()}`, this.constructor.name, LOG_LEVEL.TRACE);
         return this.priorityWaitingOn[0];
     }
 
     passStep() {
         this.resetPriorityQueue();
+        log(`Passing Step ${this.gameStep} into ${nextStep(this.gameStep)}`, this.constructor.name, LOG_LEVEL.TRACE);
         this.gameStep = nextStep(this.gameStep);
         if (this.gameStep == Step.UPKEEP) {
             this.passTurn();
@@ -112,9 +117,17 @@ export default class GameManager extends EventEmitter {
     }
 
     passTurn() {
+        const activePlayer = this.playerList[this.playersTurnIndex];
+        log(
+            `Passing Turn ${this.turnNumber} for player ${activePlayer.getId()}`,
+            this.constructor.name,
+            LOG_LEVEL.TRACE,
+        );
+        activePlayer.resetTurn();
         this.playersTurnIndex++;
         if (this.playersTurnIndex >= this.playerList.length) {
             this.playersTurnIndex = 0;
+            this.turnNumber++;
         }
     }
 
@@ -126,6 +139,7 @@ export default class GameManager extends EventEmitter {
                 // Lands do not use the stack
                 if (cardRemoved.state.types.includes(CardType.LAND)) {
                     this.instantiatePermanent(cardRemoved, player);
+                    player.playerPlayedLand();
                 } else {
                     this.stack.push(cardRemoved);
                 }
@@ -156,12 +170,16 @@ export default class GameManager extends EventEmitter {
         }
         const permanentController = controller || card.state.controller || card.state.owner;
         this.playerZoneMap.get(permanentController.getId()).battlefield.addCard(card);
+        this.emit(GameEvent.PERMANENTS_ENTER_BATTLEFIELD, [card]);
+        this.evaluateStateBasedActions();
     }
 
     resolveCard(card: CardInstance) {
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
+        } else {
         }
+        this.evaluateStateBasedActions();
     }
 
     private resetPriorityQueue(): void {
@@ -170,5 +188,53 @@ export default class GameManager extends EventEmitter {
             ...this.playerList.slice(this.playersTurnIndex + 1),
             ...this.playerList.slice(0, this.playersTurnIndex),
         ];
+    }
+
+    private evaluateStateBasedActions(): void {
+        log("Evaluating State Based Actions...", this.constructor.name, LOG_LEVEL.TRACE);
+        // Player loses the game
+        const losers: Player[] = [];
+        this.playerList.forEach((player) => {
+            if (player.getLife() <= 0) {
+                losers.push(player);
+            }
+        });
+        // TODO: Finish this
+        if (losers.length == this.playerList.length) {
+            // Game ends in a draw
+        } else {
+            losers.forEach((loser) => {
+                // Loser loses
+            });
+        }
+        // Creatures die
+        const creaturesToDie: CardInstance[] = [];
+        this.playerZoneMap.forEach((zone) => {
+            const battleField = zone.battlefield;
+            battleField.getCards().forEach((card) => {
+                if (isCreature(card)) {
+                    const damage = card.state.status?.damage;
+                    if (
+                        damage &&
+                        damage > card.state.toughness &&
+                        !card.state.status.abilities.includes(AbilityKeyword.INDESTRUCTIBLE)
+                    ) {
+                        creaturesToDie.push(card);
+                    }
+                }
+            });
+        });
+        this.creaturesDie(creaturesToDie);
+    }
+
+    creaturesDie(cards: CardInstance[]) {
+        this.emit(GameEvent.PERMANENTS_LEAVE_BATTLEFIELD, cards, "Graveyard");
+        cards.forEach((card) => {
+            const owner = card.state.owner;
+            const controller = card.state.controller;
+            this.playerZoneMap.get(controller.getId()).battlefield.removeCard(card.state.id);
+            this.playerZoneMap.get(owner.getId()).graveyard.addCard(card);
+        });
+        this.emit(GameEvent.CARDS_ENTER_GRAVEYARD, cards);
     }
 }

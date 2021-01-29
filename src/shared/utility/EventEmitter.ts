@@ -6,6 +6,9 @@ export enum GameEvent {
     BEGIN_STEP,
     DRAW_PAST_DECK,
     LIFE_BELOW_ZERO,
+    PERMANENTS_ENTER_BATTLEFIELD = 4,
+    PERMANENTS_LEAVE_BATTLEFIELD,
+    CARDS_ENTER_GRAVEYARD,
 }
 
 type Callback = (...args: any[]) => void;

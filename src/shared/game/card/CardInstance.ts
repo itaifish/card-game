@@ -1,6 +1,7 @@
 import { Counter } from "./Counter";
 import Player from "../player/Player";
 import * as uuid4 from "uuid4";
+import { AbilityKeyword } from "./AbilityKeywords";
 
 export enum CardType {
     INSTANT,
@@ -12,6 +13,12 @@ export enum CardType {
     ARTIFACT,
 }
 
+export interface CardStatus {
+    damage?: number;
+    counters?: Map<AbilityKeyword, number>;
+    abilities?: AbilityKeyword[];
+}
+
 export interface CardState {
     counters: Counter[];
     types: CardType[];
@@ -19,12 +26,17 @@ export interface CardState {
     id: string;
     controller?: Player; //default the owner
     revealedTo?: Player[]; // default based on zone
+    status?: CardStatus;
+    power?: number; //card's actual power and toughness
+    toughness?: number;
 }
 
 export interface Card {
     name: string;
     manaCost: string;
     isToken?: boolean;
+    power?: number; // Power and toughness is text on card
+    toughness?: number;
 }
 
 export const copyInstance = (cardToCopy: CardInstance, preserveState = false): CardInstance => {
@@ -34,6 +46,12 @@ export const copyInstance = (cardToCopy: CardInstance, preserveState = false): C
         types: [...cardToCopy.state.types],
         owner: cardToCopy.state.owner,
         id: preserveState ? cardToCopy.state.id : uuid4(),
+        status: preserveState
+            ? {
+                  damage: cardToCopy.state.status?.damage,
+                  counters: cardToCopy.state.status.counters ? new Map(cardToCopy.state.status.counters) : null,
+              }
+            : null,
     };
     if (preserveState && cardToCopy.state.revealedTo) {
         copiedState.revealedTo = [...cardToCopy.state.revealedTo];
@@ -57,6 +75,10 @@ export const isPermanent = (cardInstance: CardInstance): boolean => {
         types.includes(CardType.LAND) ||
         types.includes(CardType.PLANESWALKER)
     );
+};
+
+export const isCreature = (cardInstance: CardInstance): boolean => {
+    return cardInstance.state.types.includes(CardType.CREATURE);
 };
 
 export default interface CardInstance {
