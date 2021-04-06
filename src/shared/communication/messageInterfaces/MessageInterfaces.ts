@@ -1,4 +1,4 @@
-import { CardType } from "../../game/card/CardInstance";
+import { Card, CardType } from "../../game/card/CardInstance";
 
 export interface SelectionCriteria {
     legalTargets: CardType[];
@@ -6,6 +6,12 @@ export interface SelectionCriteria {
     legalZones: string[];
 }
 
+// Server -> Client
 export interface YouHavePriorityMessage {
     targetsToChoose?: SelectionCriteria[];
+}
+
+// Client -> Server
+export interface PassedPriorityMessage {
+    chosenTargets?: Card[];
 }

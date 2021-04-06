@@ -149,7 +149,7 @@ export default class UserPlayerManager {
             const message: YouHavePriorityMessage = {
                 targetsToChoose,
             };
-            user.socket.emit(MessageEnum.ACTIVE_PRIORITY, message);
+            user.socket.emit(MessageEnum.PASSED_PRIORITY, message);
         }
     }
 }

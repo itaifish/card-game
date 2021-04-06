@@ -10,7 +10,7 @@ enum MessageEnum {
     START_GAME = "start game",
     CONCEDE = "i give in!!!!",
     GAME_HAS_ENDED = "game over gg wp no re",
-    ACTIVE_PRIORITY = "your go broski",
+    PASSED_PRIORITY = "your go broski",
 }
 
 export default MessageEnum;

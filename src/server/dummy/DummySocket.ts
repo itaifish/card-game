@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types,@typescript-eslint/no-empty-function */
 import SocketIO from "socket.io";
 
+// A dummy socket that allows for handling emitted events ONLY with .on
 export default class DummySocket implements SocketIO.Socket {
     adapter: SocketIO.Adapter;
     broadcast: SocketIO.Socket;
@@ -17,6 +18,12 @@ export default class DummySocket implements SocketIO.Socket {
     server: SocketIO.Server;
     volatile: SocketIO.Socket;
 
+    events: Map<string | symbol, Function>;
+
+    constructor() {
+        this.events = new Map<string | symbol, Function>();
+    }
+
     addListener(event: string | symbol, listener: (...args: any[]) => void): this {
         return undefined;
     }
@@ -30,6 +37,10 @@ export default class DummySocket implements SocketIO.Socket {
     }
 
     emit(event: string | symbol, ...args: any[]): boolean {
+        if (this.events.has(event)) {
+            this.events.get(event)(...args);
+            return true;
+        }
         return false;
     }
 
@@ -72,7 +83,8 @@ export default class DummySocket implements SocketIO.Socket {
     }
 
     on(event: string | symbol, listener: (...args: any[]) => void): this {
-        return undefined;
+        this.events.set(event, listener);
+        return this;
     }
 
     once(event: string | symbol, listener: (...args: any[]) => void): this {
