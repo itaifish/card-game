@@ -32,7 +32,10 @@ export default class GamesManager extends LobbyManger {
             }
             this.userJoinTeamInLobby(player, createdGame.getId(), currentPlayersTeam);
         });
-        this.lobbyToGameManagerMap.set(lobby.getId(), new GameManager(lobby.getId(), this.server, lobby.getPlayers()));
+        this.lobbyToGameManagerMap.set(
+            lobby.getId(),
+            new GameManager(lobby.getId(), this.server, lobby.getPlayers(), lobby.getSettings()),
+        );
         return this.lobbyToGameManagerMap.get(lobby.getId());
     }
 

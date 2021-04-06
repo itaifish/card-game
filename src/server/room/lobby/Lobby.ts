@@ -2,9 +2,10 @@ import Room from "../room";
 import LobbySettings from "./lobbySettings";
 import log, { LOG_LEVEL } from "../../../shared/utility/logger";
 import Player from "../../../shared/game/player/Player";
+import GameSettings from "../../../shared/game/settings/GameSettings";
 
 export default class Lobby implements Room {
-    private readonly settings: LobbySettings;
+    private readonly settings: GameSettings;
     private readonly id: string;
     private lobbyLeader: Player;
     private players: Player[];
@@ -17,7 +18,7 @@ export default class Lobby implements Room {
      */
     private readonly playerTeamMap: Map<number, Map<number, Player>>;
 
-    constructor(id: string, initialPlayer: Player, settings: LobbySettings) {
+    constructor(id: string, initialPlayer: Player, settings: GameSettings) {
         this.settings = settings;
         this.players = [];
         this.playerTeamMap = new Map<number, Map<number, Player>>();
@@ -51,7 +52,7 @@ export default class Lobby implements Room {
         }
         const team = this.playerTeamMap.get(teamId);
         if (team) {
-            if (Object.keys(team).length < this.settings.maxPlayersPerTeam) {
+            if (Object.keys(team).length < this.settings.playersPerTeam) {
                 team.set(player.getId(), player);
                 //player.status = UserStatus.IN_LOBBY;
                 this.players.push(player);
@@ -78,7 +79,7 @@ export default class Lobby implements Room {
         });
     }
 
-    getSettings(): LobbySettings {
+    getSettings(): GameSettings {
         return this.settings;
     }
 

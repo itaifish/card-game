@@ -2,6 +2,7 @@ import uuid4 from "uuid4";
 import Lobby from "../room/lobby/Lobby";
 import LobbySettings from "../room/lobby/lobbySettings";
 import Player from "../../shared/game/player/Player";
+import GameSettings from "../../shared/game/settings/GameSettings";
 
 export default class LobbyManger {
     //{ [lobbyId: string]: Lobby };
@@ -18,7 +19,7 @@ export default class LobbyManger {
         return Object.keys(this.lobbyMap).map((key: string) => this.lobbyMap.get(key));
     }
 
-    userCreateLobby(user: Player, settings: LobbySettings, presetId?: string): Lobby {
+    userCreateLobby(user: Player, settings: GameSettings, presetId?: string): Lobby {
         // disconnect user from any previous lobby they are in
         this.playerDisconnects(user);
         let id = presetId;

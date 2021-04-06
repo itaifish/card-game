@@ -72,6 +72,11 @@ export default class GameManager extends EventEmitter {
             });
             player.setLife(settings.startingLife);
         });
+        this.on(GameEvent.BEGIN_STEP, (step: Step) => {
+            if (step == Step.DRAW) {
+                this.playerDrawCard(this.getPlayerWhoseTurnItIs());
+            }
+        });
     }
 
     /**
@@ -84,11 +89,11 @@ export default class GameManager extends EventEmitter {
             log("Player is null", this.constructor.name, LOG_LEVEL.WARN);
             return;
         }
-        if (this.priorityWaitingOn[0] === player) {
+        if (this.getActivePlayer() === player) {
             this.priorityWaitingOn.shift();
         } else {
             log(
-                `Active player is not ${player.getId()}, but is instead ${this.priorityWaitingOn[0].getId()}`,
+                `Active player is not ${player.getId()}, but is instead ${this.getActivePlayer().getId()}`,
                 this.constructor.name,
                 LOG_LEVEL.WARN,
             );
@@ -102,8 +107,8 @@ export default class GameManager extends EventEmitter {
                 this.resetPriorityQueue();
             }
         }
-        log(`Active player is now ${this.priorityWaitingOn[0].getId()}`, this.constructor.name, LOG_LEVEL.TRACE);
-        return this.priorityWaitingOn[0];
+        log(`Active player is now ${this.getActivePlayer().getId()}`, this.constructor.name, LOG_LEVEL.TRACE);
+        return this.getActivePlayer();
     }
 
     passStep() {
@@ -117,7 +122,7 @@ export default class GameManager extends EventEmitter {
     }
 
     passTurn() {
-        const activePlayer = this.playerList[this.playersTurnIndex];
+        const activePlayer = this.getPlayerWhoseTurnItIs();
         log(
             `Passing Turn ${this.turnNumber} for player ${activePlayer.getId()}`,
             this.constructor.name,
@@ -131,8 +136,23 @@ export default class GameManager extends EventEmitter {
         }
     }
 
+    getPlayerWhoseTurnItIs(): Player {
+        return this.playerList[this.playersTurnIndex];
+    }
+
+    getActivePlayer(): Player {
+        return this.priorityWaitingOn[0];
+    }
+
+    playerDrawCard(player: Player, amount = 1) {
+        const currentPlayer = this.getPlayerWhoseTurnItIs().getId();
+        const hand = this.playerZoneMap.get(currentPlayer).hand;
+        const library = this.playerZoneMap.get(currentPlayer).library;
+        library.draw(hand, amount);
+    }
+
     playCard(player: Player, cardId: string) {
-        if (this.priorityWaitingOn[0] == player) {
+        if (this.getActivePlayer() == player) {
             const hand = this.playerZoneMap.get(player.getId()).hand;
             const cardRemoved = hand.removeCard(cardId);
             if (cardRemoved) {
@@ -184,12 +204,32 @@ export default class GameManager extends EventEmitter {
 
     private resetPriorityQueue(): void {
         this.priorityWaitingOn = [
-            this.playerList[this.playersTurnIndex],
+            this.getPlayerWhoseTurnItIs(),
             ...this.playerList.slice(this.playersTurnIndex + 1),
             ...this.playerList.slice(0, this.playersTurnIndex),
         ];
     }
 
+    /**
+     * 704.5a If a player has 0 or less life, that player loses the game.
+     704.5b If a player attempted to draw a card from a library with no cards in it since the last time state-based actions were checked, that player loses the game.
+     704.5c If a player has ten or more poison counters, that player loses the game. Ignore this rule in Two-Headed Giant games; see rule 704.6b instead.
+     704.5d If a token is in a zone other than the battlefield, it ceases to exist.
+     704.5e If a copy of a spell is in a zone other than the stack, it ceases to exist. If a copy of a card is in any zone other than the stack or the battlefield, it ceases to exist.
+     704.5f If a creature has toughness 0 or less, it’s put into its owner’s graveyard. Regeneration can’t replace this event.
+     704.5g If a creature has toughness greater than 0, it has damage marked on it, and the total damage marked on it is greater than or equal to its toughness, that creature has been dealt lethal damage and is destroyed. Regeneration can replace this event.
+     704.5h If a creature has toughness greater than 0, and it’s been dealt damage by a source with deathtouch since the last time state-based actions were checked, that creature is destroyed. Regeneration can replace this event.
+     704.5i If a planeswalker has loyalty 0, it’s put into its owner’s graveyard.
+     704.5j If a player controls two or more legendary permanents with the same name, that player chooses one of them, and the rest are put into their owners’ graveyards. This is called the “legend rule.”
+     704.5k If two or more permanents have the supertype world, all except the one that has had the world supertype for the shortest amount of time are put into their owners’ graveyards. In the event of a tie for the shortest amount of time, all are put into their owners’ graveyards. This is called the “world rule.”
+     704.5m If an Aura is attached to an illegal object or player, or is not attached to an object or player, that Aura is put into its owner’s graveyard.
+     704.5n If an Equipment or Fortification is attached to an illegal permanent or to a player, it becomes unattached from that permanent or player. It remains on the battlefield.
+     704.5p If a creature is attached to an object or player, it becomes unattached and remains on the battlefield. Similarly, if a permanent that’s neither an Aura, an Equipment, nor a Fortification is attached to an object or player, it becomes unattached and remains on the battlefield.
+     704.5q If a permanent has both a +1/+1 counter and a -1/-1 counter on it, N +1/+1 and N -1/-1 counters are removed from it, where N is the smaller of the number of +1/+1 and -1/-1 counters on it.
+     704.5r If a permanent with an ability that says it can’t have more than N counters of a certain kind on it has more than N counters of that kind on it, all but N of those counters are removed from it.
+     704.5s If the number of lore counters on a Saga permanent is greater than or equal to its final chapter number and it isn’t the source of a chapter ability that has triggered but not yet left the stack, that Saga’s controller sacrifices it. See rule 714, “Saga Cards.”
+     * @private
+     */
     private evaluateStateBasedActions(): void {
         log("Evaluating State Based Actions...", this.constructor.name, LOG_LEVEL.TRACE);
         // Player loses the game
@@ -215,9 +255,10 @@ export default class GameManager extends EventEmitter {
                 if (isCreature(card)) {
                     const damage = card.state.status?.damage;
                     if (
-                        damage &&
-                        damage > card.state.toughness &&
-                        !card.state.status.abilities.includes(AbilityKeyword.INDESTRUCTIBLE)
+                        (damage &&
+                            damage > card.state.toughness &&
+                            !card.state.status.abilities.includes(AbilityKeyword.INDESTRUCTIBLE)) ||
+                        card.state.toughness <= 0
                     ) {
                         creaturesToDie.push(card);
                     }
@@ -226,8 +267,8 @@ export default class GameManager extends EventEmitter {
         });
         this.creaturesDie(creaturesToDie);
     }
-
-    creaturesDie(cards: CardInstance[]) {
+    // TODO: implement canBeRegenerated
+    creaturesDie(cards: CardInstance[], canBeRegenerated = true) {
         this.emit(GameEvent.PERMANENTS_LEAVE_BATTLEFIELD, cards, "Graveyard");
         cards.forEach((card) => {
             const owner = card.state.owner;
