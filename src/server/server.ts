@@ -13,7 +13,7 @@ import {
     GetLobbiesResponse,
     JoinLobbyRequest,
 } from "../shared/communication/messageInterfaces/lobbyMessage";
-import UserPlayerManager from "./manager/userPlayerManager";
+import UserPlayerManager from "./manager/UserPlayerManager";
 import LobbyManger from "./manager/LobbyManager";
 import log, { LOG_LEVEL } from "../shared/utility/logger";
 import GamesManager from "./manager/GamesManager";
