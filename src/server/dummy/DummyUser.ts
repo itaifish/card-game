@@ -4,6 +4,11 @@ import DummySocket from "./DummySocket";
 import dummyDeck from "./DummyDeck";
 import MessageEnum from "../../shared/communication/messageEnum";
 import GameManager from "../../shared/game/manager/GameManager";
+import {
+    SelectionCriteria,
+    YouHavePriorityMessage,
+} from "../../shared/communication/messageInterfaces/MessageInterfaces";
+import CardInstance from "../../shared/game/card/CardInstance";
 
 export default class DummyUser implements User {
     id: number;
@@ -21,7 +26,18 @@ export default class DummyUser implements User {
         this.status = UserStatus.IN_GAME;
         this.socket = new DummySocket();
         // Whenever get passed priority, pass it right on back
-        this.socket.on(MessageEnum.PASSED_PRIORITY, () => {
+        this.socket.on(MessageEnum.PASSED_PRIORITY, (message: YouHavePriorityMessage) => {
+            const targets: string[] = [];
+            message.targetsToChoose.forEach((critera: SelectionCriteria) => {
+                const firstValidCard: CardInstance = null;
+                const allCards = manager.getAllCardsOnBattlefield();
+                for (const card of allCards) {
+                    if() {
+
+                    }
+                }
+                manager.targets.push();
+            });
             manager.passPriority(this.player);
         });
     }

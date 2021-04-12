@@ -5,6 +5,7 @@ export default abstract class Zone extends EventEmitter {
     private isPublic: boolean;
     private isShared: boolean;
     private isOrdered: boolean;
+    private readonly name: ZoneName;
     private readonly cards: CardInstance[];
 
     /**
@@ -14,8 +15,15 @@ export default abstract class Zone extends EventEmitter {
      * @param isOrdered Whether the zone order matters
      * @param cards List of cards in the zone
      */
-    protected constructor(isPublic: boolean, isShared: boolean, isOrdered: boolean, cards?: Zone | CardInstance[]) {
+    protected constructor(
+        name: ZoneName,
+        isPublic: boolean,
+        isShared: boolean,
+        isOrdered: boolean,
+        cards?: Zone | CardInstance[],
+    ) {
         super();
+        this.name = name;
         this.isShared = isShared;
         this.isPublic = isPublic;
         this.isOrdered = isOrdered;
@@ -49,4 +57,10 @@ export default abstract class Zone extends EventEmitter {
         }
         return null;
     };
+
+    getCard = (cardId: string): CardInstance | null => {
+        return this.cards.find((card) => card.state.id == cardId);
+    };
 }
+
+export type ZoneName = "Battlefield" | "Exile" | "Graveyard" | "Hand" | "Library" | "Stack";

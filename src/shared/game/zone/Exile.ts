@@ -4,6 +4,6 @@ import CardInstance from "../card/CardInstance";
 
 export default class Exile extends NonSharedZone {
     constructor(owner: Player, cards?: CardInstance[]) {
-        super(true, false, owner, cards);
+        super("Exile", true, false, owner, cards);
     }
 }

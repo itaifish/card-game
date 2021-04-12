@@ -7,7 +7,7 @@ import { GameEvent } from "../../utility/EventEmitter";
 
 export default class Library extends NonSharedZone {
     constructor(owner: Player, cards: CardInstance[]) {
-        super(false, true, owner, cards);
+        super("Library", false, true, owner, cards);
     }
 
     shuffle = (): void => {

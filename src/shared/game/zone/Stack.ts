@@ -3,7 +3,7 @@ import CardInstance, { Card } from "../card/CardInstance";
 
 export default class Stack extends Zone {
     constructor() {
-        super(false, true, true, []);
+        super("Stack", false, true, true, []);
     }
 
     pop(): CardInstance | null {

@@ -79,6 +79,14 @@ export default class GameManager extends EventEmitter {
         });
     }
 
+    getAllCardsOnBattlefield(): CardInstance[] {
+        let cards: CardInstance[] = [];
+        this.playerZoneMap.forEach((value, _key, _map) => {
+            cards = [...cards, ...value.battlefield.getCards()];
+        });
+        return cards;
+    }
+
     /**
      * Pass priority and return the next player's priority
      * @param player Player whose priority is being passed
@@ -194,7 +202,7 @@ export default class GameManager extends EventEmitter {
         this.evaluateStateBasedActions();
     }
 
-    resolveCard(card: CardInstance) {
+    resolveCard(card: CardInstance, targetIds?: string[]) {
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
         } else {
