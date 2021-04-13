@@ -22,11 +22,13 @@ export interface SelectionCriteria {
 }
 
 // Server -> Client
-export interface YouHavePriorityMessage {
-    targetsToChoose?: SelectionCriteria[];
+export interface PleaseChooseTargetsMessage {
+    targetsToChoose: SelectionCriteria[];
+    cardId: string;
 }
 
 // Client -> Server
-export interface PassedPriorityMessage {
+export interface PassedTargetsMessage {
     chosenTargets?: string[]; // card ids
+    cardId: string;
 }

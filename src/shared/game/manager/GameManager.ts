@@ -87,21 +87,31 @@ export default class GameManager extends EventEmitter {
         return cards;
     }
 
+    setCardTargets(cardId: string, targetIds: string[]) {
+        const card = this.stack.getCard(cardId);
+        if (card) {
+            card.state.targetIds = targetIds;
+            log(`Setting targets for card: ${cardId}: ${targetIds}`, this.constructor.name, LOG_LEVEL.TRACE);
+        } else {
+            log(`Unable to find ID ${cardId} on the stack`, this.constructor.name, LOG_LEVEL.WARN);
+        }
+    }
+
     /**
      * Pass priority and return the next player's priority
      * @param player Player whose priority is being passed
      * @return Player whoever's priority is next
      */
-    passPriority(player: Player): Player | null {
-        if (player == null) {
+    passPriority(playerId: number): Player | null {
+        if (playerId == null) {
             log("Player is null", this.constructor.name, LOG_LEVEL.WARN);
             return;
         }
-        if (this.getActivePlayer() === player) {
+        if (this.getActivePlayer().getId() === playerId) {
             this.priorityWaitingOn.shift();
         } else {
             log(
-                `Active player is not ${player.getId()}, but is instead ${this.getActivePlayer().getId()}`,
+                `Active player is not ${playerId}, but is instead ${this.getActivePlayer().getId()}`,
                 this.constructor.name,
                 LOG_LEVEL.WARN,
             );
@@ -160,7 +170,7 @@ export default class GameManager extends EventEmitter {
     }
 
     playCard(player: Player, cardId: string) {
-        if (this.getActivePlayer() == player) {
+        if (this.getActivePlayer().getId() == player.getId()) {
             const hand = this.playerZoneMap.get(player.getId()).hand;
             const cardRemoved = hand.removeCard(cardId);
             if (cardRemoved) {
@@ -168,7 +178,13 @@ export default class GameManager extends EventEmitter {
                 if (cardRemoved.state.types.includes(CardType.LAND)) {
                     this.instantiatePermanent(cardRemoved, player);
                     player.playerPlayedLand();
+                    log(`Player ${player.getId()} played land: ${cardRemoved}`, this.constructor.name, LOG_LEVEL.TRACE);
                 } else {
+                    log(
+                        `Player ${player.getId()} putting ${cardRemoved} on the stack`,
+                        this.constructor.name,
+                        LOG_LEVEL.TRACE,
+                    );
                     this.stack.push(cardRemoved);
                 }
             } else {
@@ -202,7 +218,7 @@ export default class GameManager extends EventEmitter {
         this.evaluateStateBasedActions();
     }
 
-    resolveCard(card: CardInstance, targetIds?: string[]) {
+    resolveCard(card: CardInstance) {
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
         } else {

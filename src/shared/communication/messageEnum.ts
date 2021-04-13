@@ -11,6 +11,7 @@ enum MessageEnum {
     CONCEDE = "i give in!!!!",
     GAME_HAS_ENDED = "game over gg wp no re",
     PASSED_PRIORITY = "your go broski",
+    CHOOSE_TARGETS = "choose targets",
 }
 
 export default MessageEnum;

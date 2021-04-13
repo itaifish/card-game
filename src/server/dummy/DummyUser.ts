@@ -7,7 +7,7 @@ import GameManager from "../../shared/game/manager/GameManager";
 import {
     isValid,
     SelectionCriteria,
-    YouHavePriorityMessage,
+    PleaseChooseTargetsMessage,
 } from "../../shared/communication/messageInterfaces/MessageInterfaces";
 import CardInstance from "../../shared/game/card/CardInstance";
 import log, { LOG_LEVEL } from "../../shared/utility/logger";
@@ -28,7 +28,7 @@ export default class DummyUser implements User {
         this.status = UserStatus.IN_GAME;
         this.socket = new DummySocket();
         // Whenever get passed priority, pass it right on back
-        this.socket.on(MessageEnum.PASSED_PRIORITY, (message: YouHavePriorityMessage) => {
+        this.socket.on(MessageEnum.CHOOSE_TARGETS, (message: PleaseChooseTargetsMessage) => {
             const targets: string[] = [];
             message.targetsToChoose.forEach((critera: SelectionCriteria) => {
                 let firstValidCard: CardInstance = null;
@@ -50,7 +50,10 @@ export default class DummyUser implements User {
                     throw new Error("No Valid Cards to Target");
                 }
             });
-            manager.passPriority(this.player, targets);
+            manager.setCardTargets(message.cardId, targets);
+        });
+        this.socket.on(MessageEnum.PASSED_PRIORITY, () => {
+            manager.passPriority(this.player.getId());
         });
     }
 }

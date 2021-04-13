@@ -29,6 +29,7 @@ export interface CardState {
     status?: CardStatus;
     power?: number; //card's actual power and toughness
     toughness?: number;
+    targetIds?: string[];
 }
 
 export interface Card {
