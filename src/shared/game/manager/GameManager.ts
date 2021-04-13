@@ -6,7 +6,7 @@ import Exile from "../zone/Exile";
 import Stack from "../zone/Stack";
 import CardInstance, { CardType, copyPile, isCreature, isPermanent } from "../card/CardInstance";
 import EventEmitter, { GameEvent } from "../../utility/EventEmitter";
-import Server from "../../../server/server";
+import Server from "../../../server/Server";
 import { nextStep, Step } from "../phase/Phase";
 import log, { LOG_LEVEL } from "../../utility/logger";
 import Battlefield from "../zone/Battlefield";
@@ -44,6 +44,8 @@ export default class GameManager extends EventEmitter {
 
     private readonly result: GameResult;
 
+    private readonly server: Server;
+
     private priorityWaitingOn: Player[];
 
     constructor(gameId: string, server: Server, players: Player[], settings: GameSettings) {
@@ -56,6 +58,7 @@ export default class GameManager extends EventEmitter {
         this.result = null;
         this.gameStep = Step.UNTAP;
         this.stack = new Stack();
+        this.server = server;
         this.priorityWaitingOn = [...this.playerList];
         players.forEach((player) => {
             const copiedLibrary: CardInstance[] = copyPile(player.getStartingLibrary());
@@ -201,6 +204,7 @@ export default class GameManager extends EventEmitter {
                 LOG_LEVEL.WARN,
             );
         }
+        this.evaluateStateBasedActions();
     }
 
     private instantiatePermanent(card: CardInstance, controller?: Player): void {

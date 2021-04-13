@@ -3,10 +3,7 @@ import socketio from "socket.io";
 import Player from "../../shared/game/player/Player";
 import CardInstance from "../../shared/game/card/CardInstance";
 import log, { LOG_LEVEL } from "../../shared/utility/logger";
-import {
-    SelectionCriteria,
-    YouHavePriorityMessage,
-} from "../../shared/communication/messageInterfaces/MessageInterfaces";
+import { SelectionCriteria } from "../../shared/communication/messageInterfaces/MessageInterfaces";
 import MessageEnum from "../../shared/communication/messageEnum";
 
 export interface User {
@@ -141,15 +138,12 @@ export default class UserPlayerManager {
         return userObj;
     }
 
-    givePlayerPriority(player: Player, targetsToChoose?: SelectionCriteria[]) {
+    givePlayerPriority(player: Player) {
         const user: User = this.getUserFromUserId(player.getId());
         if (!user) {
             log(`${player.getId()} can not be found/associated with any user`, this.constructor.name, LOG_LEVEL.ERROR);
         } else {
-            const message: YouHavePriorityMessage = {
-                targetsToChoose,
-            };
-            user.socket.emit(MessageEnum.PASSED_PRIORITY, message);
+            user.socket.emit(MessageEnum.PASSED_PRIORITY);
         }
     }
 }

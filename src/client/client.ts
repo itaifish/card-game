@@ -14,7 +14,7 @@ import {
 } from "../shared/communication/messageInterfaces/lobbyMessage";
 import log, { LOG_LEVEL } from "../shared/utility/logger";
 import Process from "../../process.json";
-import Constants from "../shared/config/constants";
+import Constants from "../shared/config/Constants";
 import ServerStatsMessage from "../shared/communication/messageInterfaces/serverStatsMessage";
 
 type callbackFunction = (...args: any[]) => void;

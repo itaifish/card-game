@@ -3,7 +3,7 @@ import Lobby from "../room/lobby/Lobby";
 import UserPlayerManager from "./UserPlayerManager";
 import GameManager from "../../shared/game/manager/gameManager";
 import log, { LOG_LEVEL } from "../../shared/utility/logger";
-import Server from "../server";
+import Server from "../Server";
 
 export default class GamesManager extends LobbyManger {
     private readonly userManager: UserPlayerManager;
