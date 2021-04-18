@@ -12,6 +12,7 @@ import log, { LOG_LEVEL } from "../../utility/logger";
 import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
+import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -140,6 +141,14 @@ export default class GameManager extends EventEmitter {
             this.passTurn();
         }
         this.emit(GameEvent.BEGIN_STEP, this.gameStep);
+    }
+
+    getTargetsFromPlayerForCard(cardId: string, playerId: number, targets: SelectionCriteria[]) {
+        log(`Asking player: ${playerId} to choose targets: ${targets}`, this.constructor.name, LOG_LEVEL.TRACE);
+        this.server.getTargetsFromPlayerForCard(cardId, playerId, targets);
+        this.once(GameEvent.PLAYER_CHOOSE_TARGETS, (chosenCardIds: string[]) => {
+            log(`Received targets: ${chosenCardIds} for card: ${cardId}`, this.constructor.name, LOG_LEVEL.TRACE);
+        });
     }
 
     passTurn() {

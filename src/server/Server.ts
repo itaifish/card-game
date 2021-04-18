@@ -8,6 +8,12 @@ import LobbyManger from "./manager/LobbyManager";
 import log, { LOG_LEVEL } from "../shared/utility/logger";
 import GamesManager from "./manager/GamesManager";
 import Player from "../shared/game/player/Player";
+import {
+    PassedTargetsMessage,
+    PleaseChooseTargetsMessage,
+    SelectionCriteria,
+} from "../shared/communication/messageInterfaces/MessageInterfaces";
+import { GameEvent } from "../shared/utility/EventEmitter";
 
 export default class Server {
     // Server Variables
@@ -54,6 +60,27 @@ export default class Server {
 
     playerHasPriority(player: Player) {
         const user = this.userManager.givePlayerPriority(player);
+    }
+
+    getTargetsFromPlayerForCard(cardId: string, playerId: number, targets: SelectionCriteria[]) {
+        const user = this.userManager.getUserFromUserId(playerId);
+        const game = this.gamesManager.playerToGameManager(playerId);
+        if (user && game) {
+            const message: PleaseChooseTargetsMessage = {
+                targetsToChoose: targets,
+                cardId: cardId,
+            };
+            user.socket.once(MessageEnum.CHOOSE_TARGETS, (responseMessage: PassedTargetsMessage) => {
+                game.emit(GameEvent.PLAYER_CHOOSE_TARGETS, responseMessage.chosenTargets);
+            });
+            user.socket.emit(MessageEnum.CHOOSE_TARGETS, message);
+        } else {
+            log(
+                `Unable to find user or game for player id: ${playerId}\nuser: ${user}\ngame:${game}`,
+                this.constructor.name,
+                LOG_LEVEL.WARN,
+            );
+        }
     }
 }
 

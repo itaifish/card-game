@@ -1,6 +1,6 @@
 import { Counter } from "./Counter";
 import Player from "../player/Player";
-import * as uuid4 from "uuid4";
+import uuid4 from "uuid4";
 import { AbilityKeyword } from "./AbilityKeywords";
 
 export enum CardType {

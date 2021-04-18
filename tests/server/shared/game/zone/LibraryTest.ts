@@ -18,8 +18,8 @@ describe("Library", () => {
         const unShuffledCards: number[] = new Array(cards.length).fill(0);
         const numTestRuns = 100;
         // There is a 1-in-x chance a card gets its own spot again. If a card appears in the same spot at
-        // more than 3 times its expected chance, it is likely the shuffler has a problem
-        const acceptableFailureRate = 3 * (1 / cards.length);
+        // more than 2 times its expected chance, it is likely the shuffler has a problem
+        const acceptableFailureRate = 2 * (1 / cards.length);
         for (let i = 0; i < numTestRuns; i++) {
             const oldLibrary = copyPile(library.getCards());
             library.shuffle();
@@ -43,7 +43,7 @@ describe("Library", () => {
                     ).toPrecision(4)}%`,
                 );
             } else {
-                console.log(`Failure rate for ${cards[index].card.name}: ${(failureRate * 100).toPrecision(4)}%`);
+                log(`Failure rate for ${cards[index].card.name}: ${(failureRate * 100).toPrecision(4)}%`);
             }
         });
     });
