@@ -84,7 +84,7 @@ export default class Server {
     }
 }
 
-const runServer = () => {
+export const runServer = () => {
     process.on("uncaughtException", function (err) {
         log(`Caught exception: ${err.message}`);
     });

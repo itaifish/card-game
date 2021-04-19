@@ -2,6 +2,7 @@ import { Counter } from "./Counter";
 import Player from "../player/Player";
 import uuid4 from "uuid4";
 import { AbilityKeyword } from "./AbilityKeywords";
+import GameManager from "../manager/GameManager";
 
 export enum CardType {
     INSTANT,
@@ -38,6 +39,12 @@ export interface Card {
     isToken?: boolean;
     power?: number; // Power and toughness is text on card
     toughness?: number;
+    ability: (gameManager: GameManager, state: CardState) => void; // function to happen when card resolves. Also sets eventEmitters for game manager. Function may do absolutely nothing
+    defaultState: {
+        power?: number;
+        toughness?: number;
+        types: CardType[];
+    };
 }
 
 export const copyInstance = (cardToCopy: CardInstance, preserveState = false): CardInstance => {

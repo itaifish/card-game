@@ -31,6 +31,8 @@ interface GameResult {
 export default class GameManager extends EventEmitter {
     private readonly playerZoneMap: Map<number, PlayerZones>;
 
+    private readonly playerMap: Map<number, Player>;
+
     private readonly stack: Stack;
 
     private readonly playerList: Player[];
@@ -74,6 +76,7 @@ export default class GameManager extends EventEmitter {
                 exile: new Exile(player),
                 battlefield: new Battlefield(player),
             });
+            this.playerMap.set(player.getId(), player);
             player.setLife(settings.startingLife);
         });
         this.on(GameEvent.BEGIN_STEP, (step: Step) => {
@@ -175,10 +178,14 @@ export default class GameManager extends EventEmitter {
     }
 
     playerDrawCard(player: Player, amount = 1) {
-        const currentPlayer = this.getPlayerWhoseTurnItIs().getId();
-        const hand = this.playerZoneMap.get(currentPlayer).hand;
-        const library = this.playerZoneMap.get(currentPlayer).library;
+        const hand = this.playerZoneMap.get(player.getId()).hand;
+        const library = this.playerZoneMap.get(player.getId()).library;
         library.draw(hand, amount);
+    }
+
+    setPlayerLife(player: Player, newLife: number) {
+        this.emit(GameEvent.PLAYER_CHANGE_LIFE, player.getLife, newLife);
+        player.setLife(newLife);
     }
 
     playCard(player: Player, cardId: string) {
