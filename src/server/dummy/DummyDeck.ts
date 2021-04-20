@@ -6,7 +6,7 @@ for (let i = 0; i < 60; i++) {
     const dummyState: CardState = { id: "", owner: undefined, counters: [], types: [] };
     const dummyCard: Card = {
         name: "Island",
-        manaCost: "0",
+        cost: "0",
     };
     const basicIsland: CardInstance = {
         state: dummyState,

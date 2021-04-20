@@ -1,9 +1,11 @@
 import CardInstance from "../card/CardInstance";
+import { ManaPool } from "../mana/Mana";
 
 export default class Player {
     private readonly id: number;
     private readonly startingLibrary: CardInstance[];
     private life: number;
+    private mana: ManaPool;
 
     private landsPlayed: number;
 
@@ -40,5 +42,13 @@ export default class Player {
 
     getLife(): number {
         return this.life;
+    }
+
+    getMana(): ManaPool {
+        return this.mana;
+    }
+
+    setMana(newMana: ManaPool) {
+        this.mana = newMana;
     }
 }

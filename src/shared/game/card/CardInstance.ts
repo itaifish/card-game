@@ -3,6 +3,7 @@ import Player from "../player/Player";
 import uuid4 from "uuid4";
 import { AbilityKeyword } from "./AbilityKeywords";
 import GameManager from "../manager/GameManager";
+import ManaCost from "../mana/Mana";
 
 export enum CardType {
     INSTANT,
@@ -33,13 +34,24 @@ export interface CardState {
     targetIds?: string[];
 }
 
+export interface Cost {
+    manaCost?: ManaCost;
+    tap?: boolean;
+}
+
+export interface ActivatedAbility {
+    cost: Cost;
+    ability: (gameManager: GameManager, state: CardState) => void;
+}
+
 export interface Card {
     name: string;
-    manaCost: string;
+    cost: ManaCost;
     isToken?: boolean;
     power?: number; // Power and toughness is text on card
     toughness?: number;
     ability: (gameManager: GameManager, state: CardState) => void; // function to happen when card resolves. Also sets eventEmitters for game manager. Function may do absolutely nothing
+    activatedAbilities: ActivatedAbility[];
     defaultState: {
         power?: number;
         toughness?: number;

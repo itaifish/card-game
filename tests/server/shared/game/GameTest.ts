@@ -1,11 +1,6 @@
-import Server, {runServer} from "../../../../src/server/Server";
-
+import Server, { runServer } from "../../../../src/server/Server";
 
 describe("GameIntegrationTest", () => {
-
-    test("testShuffle", () => {
-
-    });
-    test("testDraw", () => {
-
+    test("testShuffle", () => {});
+    test("testDraw", () => {});
 });
