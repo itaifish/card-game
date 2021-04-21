@@ -11,6 +11,7 @@ export enum GameEvent {
     CARDS_ENTER_GRAVEYARD,
     PLAYER_CHOOSE_TARGETS,
     PLAYER_CHANGE_LIFE,
+    PLAYER_NEW_MANA_POOL,
 }
 
 type Callback = (...args: any[]) => void;

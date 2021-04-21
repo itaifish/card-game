@@ -62,7 +62,15 @@ export const generateManaPool = (manaPoolString: string): ManaPool => {
         Black: 0,
         Colorless: 0,
     };
-    fillWithManaString(manaPool, manaPoolString);
+    const remainingString = fillWithManaString(manaPool, manaPoolString);
+    if (remainingString.length > 0) {
+        log(
+            `Unable to parse mana cost of ${manaPoolString}, remaining with: ${remainingString}`,
+            "Mana",
+            LOG_LEVEL.WARN,
+        );
+    }
+
     return manaPool;
 };
 

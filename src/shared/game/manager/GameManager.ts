@@ -13,6 +13,8 @@ import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
 import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
+import { ManaPool } from "../mana/Mana";
+import CardOracle from "../card/CardOracle";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -36,6 +38,8 @@ export default class GameManager extends EventEmitter {
     private readonly stack: Stack;
 
     private readonly playerList: Player[];
+
+    private readonly cardOracle: CardOracle;
 
     private turnNumber: number;
 
@@ -63,8 +67,12 @@ export default class GameManager extends EventEmitter {
         this.stack = new Stack();
         this.server = server;
         this.priorityWaitingOn = [...this.playerList];
+        this.cardOracle = new CardOracle();
         players.forEach((player) => {
             const copiedLibrary: CardInstance[] = copyPile(player.getStartingLibrary());
+            copiedLibrary.forEach((cardInstance) => {
+                this.cardOracle.addCard(cardInstance);
+            });
             const newLibrary = new Library(player, copiedLibrary);
             newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
                 // TODO: Player loses game
@@ -186,6 +194,11 @@ export default class GameManager extends EventEmitter {
     setPlayerLife(player: Player, newLife: number) {
         this.emit(GameEvent.PLAYER_CHANGE_LIFE, player.getLife, newLife);
         player.setLife(newLife);
+    }
+
+    setPlayerManaPool(player: Player, newManaPool: ManaPool) {
+        this.emit(GameEvent.PLAYER_NEW_MANA_POOL, player.getMana, newManaPool);
+        player.setMana(newManaPool);
     }
 
     playCard(player: Player, cardId: string) {

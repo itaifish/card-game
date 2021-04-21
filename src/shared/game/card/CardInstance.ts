@@ -88,13 +88,16 @@ export const copyPile = (pileToCopy: CardInstance[], preserveState = false): Car
 
 export const isPermanent = (cardInstance: CardInstance): boolean => {
     const types = cardInstance.state.types;
-    return (
-        types.includes(CardType.ARTIFACT) ||
-        types.includes(CardType.CREATURE) ||
-        types.includes(CardType.ENCHANTMENT) ||
-        types.includes(CardType.LAND) ||
-        types.includes(CardType.PLANESWALKER)
-    );
+    const typeExists: CardType = types.find((type) => {
+        return (
+            type == CardType.CREATURE ||
+            type == CardType.PLANESWALKER ||
+            type == CardType.LAND ||
+            type == CardType.ARTIFACT ||
+            type == CardType.ENCHANTMENT
+        );
+    });
+    return typeExists != undefined;
 };
 
 export const isCreature = (cardInstance: CardInstance): boolean => {

@@ -1,4 +1,4 @@
-import { ActivatedAbility, Card, CardState, CardType } from "./CardInstance";
+import CardInstance, { ActivatedAbility, Card, CardState, CardType } from "./CardInstance";
 import MathUtility from "../../utility/math";
 import log, { LOG_LEVEL } from "../../utility/logger";
 import ManaCost, { addManaPools, generateManaCost, generateManaPool } from "../mana/Mana";
@@ -18,13 +18,24 @@ const addManaAbility = (manaToAdd: string): ActivatedAbility => {
             manaCost: freeManaCost,
         },
         ability: (gameManager: GameManager, state: CardState) => {
-            const playerMana = state.controller.getMana();
-            state.controller.setMana(addManaPools(state.controller.getMana(), generateManaPool(manaToAdd)));
+            const player = state.controller;
+            gameManager.setPlayerManaPool(player, addManaPools(player.getMana(), generateManaPool(manaToAdd)));
         },
     };
 };
 
+//Holds all cards, and the specific card instances for each game
 export default class CardOracle {
+    private readonly gameCards: Map<string, CardInstance> = new Map<string, CardInstance>();
+
+    public addCard(card: CardInstance): void {
+        this.gameCards.set(card.state.id, card);
+    }
+
+    public getCard(cardId: string) {
+        return this.gameCards.get(cardId);
+    }
+
     static cardList: { [cardName: string]: Card } = {
         Island: {
             name: "Island",
