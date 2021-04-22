@@ -59,6 +59,18 @@ export interface Card {
     };
 }
 
+export const instantiateCard = (card: Card, id: string, owner?: Player | null): CardInstance => {
+    return {
+        card: card,
+        state: {
+            id: id,
+            owner: owner,
+            counters: [],
+            ...card.defaultState,
+        },
+    };
+};
+
 export const copyInstance = (cardToCopy: CardInstance, preserveState = false): CardInstance => {
     // Note that `[...array]` will preform a shallow copy of an array. `arr.slice()` would work as well
     const copiedState: CardState = {

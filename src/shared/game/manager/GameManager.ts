@@ -159,6 +159,7 @@ export default class GameManager extends EventEmitter {
         this.server.getTargetsFromPlayerForCard(cardId, playerId, targets);
         this.once(GameEvent.PLAYER_CHOOSE_TARGETS, (chosenCardIds: string[]) => {
             log(`Received targets: ${chosenCardIds} for card: ${cardId}`, this.constructor.name, LOG_LEVEL.TRACE);
+            this.setCardTargets(cardId, chosenCardIds);
         });
     }
 
