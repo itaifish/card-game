@@ -54,7 +54,7 @@ nextStepMap.set(Step.DAMAGE, Step.END_OF_COMBAT);
 nextStepMap.set(Step.END_OF_COMBAT, Step.MAIN_PHASE_2);
 nextStepMap.set(Step.MAIN_PHASE_2, Step.END_STEP);
 nextStepMap.set(Step.END_STEP, Step.CLEANUP);
-nextStepMap.set(Step.CLEANUP, Step.UPKEEP);
+nextStepMap.set(Step.CLEANUP, Step.UNTAP);
 
 export const nextStep = (step: Step): Step => {
     return nextStepMap.get(step);

@@ -4,7 +4,7 @@ import Player from "../../../../src/shared/game/player/Player";
 import DummyUser from "../../../../src/server/dummy/DummyUser";
 import CardInstance, { instantiateCard } from "../../../../src/shared/game/card/CardInstance";
 import CardOracle from "../../../../src/shared/game/card/CardOracle";
-import * as uuid4 from "uuid4";
+import uuid4 from "uuid4";
 import GameSettings from "../../../../src/shared/game/settings/GameSettings";
 
 describe("GameIntegrationTest", () => {
@@ -16,14 +16,14 @@ describe("GameIntegrationTest", () => {
             "Forest",
             "Mountain",
             "Plains",
-            "Spencer's Favourite Card",
+            "Spencer's Favorite Card",
             "Itai Has a Crush on a Girl",
         ];
         const playerIds = [1, 2];
         const players: Player[] = [];
         playerIds.forEach((playerId) => {
             const cards: CardInstance[] = cardNames
-                .map((cardName) => CardOracle.cardList[cardName])
+                .map((cardName) => CardOracle.getCard(cardName))
                 .map((card) => instantiateCard(card, uuid4(), null));
             const player: Player = new Player(playerId, cards);
             cards.forEach((card) => {
@@ -43,6 +43,11 @@ describe("GameIntegrationTest", () => {
         const dummyUsers = playerIds.map((playerId) => {
             return new DummyUser(playerId, gameManager, players[playerId - 1]);
         });
+        for (let x = 0; x < 100; x++) {
+            for (const player of players) {
+                gameManager.passPriority(player.getId());
+            }
+        }
     });
     test("testDraw", () => {});
 });

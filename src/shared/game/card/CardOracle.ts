@@ -32,11 +32,20 @@ export default class CardOracle {
         this.gameCards.set(card.state.id, card);
     }
 
-    public getCard(cardId: string) {
+    public getCardInstance(cardId: string) {
         return this.gameCards.get(cardId);
     }
 
-    static cardList: { [cardName: string]: Card } = {
+    public static getCard(cardName: string) {
+        const card = CardOracle.cardList[cardName];
+        if (card) {
+            return card;
+        }
+        log(`Unable to find card for name ${cardName}`, this.constructor.name, LOG_LEVEL.WARN);
+        return null;
+    }
+
+    private static readonly cardList: { [cardName: string]: Card } = {
         Island: {
             name: "Island",
             cost: freeManaCost,

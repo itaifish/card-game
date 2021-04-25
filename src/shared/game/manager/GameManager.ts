@@ -33,7 +33,7 @@ interface GameResult {
 export default class GameManager extends EventEmitter {
     private readonly playerZoneMap: Map<number, PlayerZones>;
 
-    private readonly playerMap: Map<number, Player>;
+    //private readonly playerMap: Map<number, Player>;
 
     private readonly stack: Stack;
 
@@ -84,7 +84,7 @@ export default class GameManager extends EventEmitter {
                 exile: new Exile(player),
                 battlefield: new Battlefield(player),
             });
-            this.playerMap.set(player.getId(), player);
+            //this.playerMap.set(player.getId(), player);
             player.setLife(settings.startingLife);
         });
         this.on(GameEvent.BEGIN_STEP, (step: Step) => {
@@ -146,9 +146,13 @@ export default class GameManager extends EventEmitter {
 
     passStep() {
         this.resetPriorityQueue();
-        log(`Passing Step ${this.gameStep} into ${nextStep(this.gameStep)}`, this.constructor.name, LOG_LEVEL.TRACE);
+        log(
+            `Passing Step ${Step[this.gameStep]} into ${Step[nextStep(this.gameStep)]}`,
+            this.constructor.name,
+            LOG_LEVEL.TRACE,
+        );
         this.gameStep = nextStep(this.gameStep);
-        if (this.gameStep == Step.UPKEEP) {
+        if (this.gameStep == Step.UNTAP) {
             this.passTurn();
         }
         this.emit(GameEvent.BEGIN_STEP, this.gameStep);
