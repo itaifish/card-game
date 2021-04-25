@@ -58,6 +58,10 @@ export default class Server {
         });
     }
 
+    close(): void {
+        this.io.close();
+    }
+
     playerHasPriority(player: Player) {
         const user = this.userManager.givePlayerPriority(player);
     }

@@ -76,6 +76,10 @@ export default class GameManager extends EventEmitter {
             const newLibrary = new Library(player, copiedLibrary);
             newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
                 // TODO: Player loses game
+                log(`Player ${player} has drawn past their deck`, this.constructor.name, LOG_LEVEL.INFO);
+            });
+            newLibrary.on(GameEvent.PLAYER_DRAW, () => {
+                this.emit(GameEvent.PLAYER_DRAW, newLibrary);
             });
             this.playerZoneMap.set(player.getId(), {
                 graveyard: new Graveyard(player),

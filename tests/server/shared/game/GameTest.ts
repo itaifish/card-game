@@ -1,4 +1,4 @@
-import Server, { runServer } from "../../../../src/server/Server";
+import Server from "../../../../src/server/Server";
 import GameManager from "../../../../src/shared/game/manager/GameManager";
 import Player from "../../../../src/shared/game/player/Player";
 import DummyUser from "../../../../src/server/dummy/DummyUser";
@@ -6,6 +6,9 @@ import CardInstance, { instantiateCard } from "../../../../src/shared/game/card/
 import CardOracle from "../../../../src/shared/game/card/CardOracle";
 import uuid4 from "uuid4";
 import GameSettings from "../../../../src/shared/game/settings/GameSettings";
+import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
+import Library from "../../../../src/shared/game/zone/Library";
+import log from "../../../../src/shared/utility/logger";
 
 describe("GameIntegrationTest", () => {
     test("gameMangerTest", () => {
@@ -43,11 +46,17 @@ describe("GameIntegrationTest", () => {
         const dummyUsers = playerIds.map((playerId) => {
             return new DummyUser(playerId, gameManager, players[playerId - 1]);
         });
-        for (let x = 0; x < 100; x++) {
+        let numCardsDrawn = 0;
+        gameManager.on(GameEvent.PLAYER_DRAW, (library: Library) => {
+            numCardsDrawn++;
+        });
+        for (let x = 0; x < 200; x++) {
             for (const player of players) {
                 gameManager.passPriority(player.getId());
             }
         }
+        log(`${numCardsDrawn} cards drawn`, "gameManagerTest");
+        server.close();
     });
     test("testDraw", () => {});
 });
