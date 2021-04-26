@@ -17,4 +17,12 @@ export default class Stack extends Zone {
     isEmpty(): boolean {
         return this.getSize() == 0;
     }
+
+    peek(): CardInstance | null {
+        const cards = this.getCards();
+        if (cards.length == 0) {
+            return null;
+        }
+        return cards[cards.length - 1];
+    }
 }

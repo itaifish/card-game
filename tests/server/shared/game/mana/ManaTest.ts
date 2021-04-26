@@ -1,4 +1,11 @@
-import { generateManaCost, stringifyManaCost } from "../../../../../src/shared/game/mana/Mana";
+import {
+    generateManaCost,
+    generateManaPool,
+    isEmpty,
+    stringifyManaCost,
+    subtractCostFromManaPool,
+} from "../../../../../src/shared/game/mana/Mana";
+import { expect } from "@jest/globals";
 
 describe("ManaTest", () => {
     test("generateManaCostTest", () => {
@@ -23,10 +30,26 @@ describe("ManaTest", () => {
         let manaCost = generateManaCost("WU4");
         let manaString = stringifyManaCost(manaCost);
         let newManaCost = generateManaCost(manaString);
-        expect(newManaCost).toMatchObject(manaCost);
+        expect(newManaCost).toEqual(manaCost);
         manaCost = generateManaCost("WWWURRR");
         manaString = stringifyManaCost(manaCost);
         newManaCost = generateManaCost(manaString);
-        expect(newManaCost).toMatchObject(manaCost);
+        expect(newManaCost).toEqual(manaCost);
+    });
+    test("subtractManaCosts", () => {
+        let manaCost = generateManaCost("WU4");
+        let manaPool = generateManaPool("WUGGCC");
+        let result = subtractCostFromManaPool(manaPool, manaCost);
+        expect(isEmpty(result)).toBe(true);
+        manaPool = generateManaPool("RRRRRR");
+        result = subtractCostFromManaPool(manaPool, manaCost);
+        expect(result).toBeNull();
+        manaCost = generateManaCost("W6");
+        manaPool = generateManaPool("WWWWW");
+        result = subtractCostFromManaPool(manaPool, manaCost);
+        expect(result).toBeNull();
+        manaCost = generateManaCost("W");
+        result = subtractCostFromManaPool(manaPool, manaCost);
+        expect(result).toHaveProperty("White", 4);
     });
 });

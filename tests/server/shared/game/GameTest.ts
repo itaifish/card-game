@@ -9,6 +9,7 @@ import GameSettings from "../../../../src/shared/game/settings/GameSettings";
 import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
 import Library from "../../../../src/shared/game/zone/Library";
 import log from "../../../../src/shared/utility/logger";
+import { Step } from "../../../../src/shared/game/phase/Phase";
 
 describe("GameIntegrationTest", () => {
     test("gameMangerTest", () => {
@@ -50,7 +51,9 @@ describe("GameIntegrationTest", () => {
         gameManager.on(GameEvent.PLAYER_DRAW, (library: Library) => {
             numCardsDrawn++;
         });
-        for (let x = 0; x < 200; x++) {
+        const numTurns = cardNames.length * 2;
+        const numPriorityPasses = numTurns * (Object.keys(Step).length / 2 + 1);
+        for (let x = 0; x < numPriorityPasses; x++) {
             for (const player of players) {
                 gameManager.passPriority(player.getId());
             }

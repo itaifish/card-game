@@ -37,6 +37,54 @@ export const addManaPools = (manaPool1: ManaPool, manaPool2: ManaPool): ManaPool
     return newManaPool;
 };
 
+export const isEmpty = (mana: ManaPool | ManaCost): boolean => {
+    let empty =
+        mana.Black == 0 && mana.Blue == 0 && mana.Colorless == 0 && mana.Red == 0 && mana.Green == 0 && mana.White == 0;
+    if ("Generic" in mana) {
+        empty = mana.Generic == 0 && empty;
+    }
+    return empty;
+};
+/**
+ * @param pool: The mana pool to subtract the cost from
+ * @param cost: The mana cost to subtract
+ * @return returns the remaining mana in the mana pool, or null if the cost is higher than what is in the pool
+ */
+export const subtractCostFromManaPool = (pool: ManaPool, cost: ManaCost): ManaPool | null => {
+    const newPool = { ...pool };
+    // Pay color costs
+    for (const color of Object.keys(pool)) {
+        const manaColor: manaPoolTypes = color as manaPoolTypes;
+        newPool[manaColor] -= cost[manaColor];
+        if (newPool[manaColor] < 0) {
+            log(
+                `Cost requires ${cost[manaColor]} ${manaColor} but pool only has ${pool[manaColor]} ${manaColor}`,
+                "Mana",
+                LOG_LEVEL.WARN,
+            );
+            return null;
+        }
+    }
+    // Pay generic costs
+    let genericCost = cost.Generic;
+    Object.keys(newPool).forEach((manaColor: manaPoolTypes) => {
+        const colorAmount = newPool[manaColor];
+        if (genericCost > colorAmount) {
+            genericCost -= colorAmount;
+            newPool[manaColor] = 0;
+        } else {
+            newPool[manaColor] -= genericCost;
+            genericCost = 0;
+        }
+    });
+
+    if (genericCost > 0) {
+        log(`Cost requires ${cost.Generic} generic but pool does not have enough`, "Mana", LOG_LEVEL.WARN);
+        return null;
+    }
+    return newPool;
+};
+
 export const stringifyManaCost = (manaCost: ManaCost): string => {
     let returnString = "";
     Object.keys(manaCost).forEach((mana: manaCostTypes) => {

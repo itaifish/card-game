@@ -171,6 +171,11 @@ export default class GameManager extends EventEmitter {
         });
     }
 
+    playerPayForCard(manaPaid: ManaPool) {
+        const card = this.stack.peek();
+        const cost = card.card.cost;
+    }
+
     passTurn() {
         const activePlayer = this.getPlayerWhoseTurnItIs();
         log(
