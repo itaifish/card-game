@@ -86,6 +86,7 @@ describe("GameIntegrationTest", () => {
             }
         }
         log(`${numCardsDrawn} cards drawn`, "gameManagerTest");
+        log(`Final Game State: ${gameManager.stringifyGameState()}`);
         server.close();
     });
     test("testDraw", () => {});

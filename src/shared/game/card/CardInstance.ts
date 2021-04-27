@@ -117,15 +117,16 @@ export const isCreature = (cardInstance: CardInstance): boolean => {
     return cardInstance.state.types.includes(CardType.CREATURE);
 };
 
-export const cardToString = (cardInstance: CardInstance): string => {
-    let res = "";
-    const newObj = {
+export const simplifyCardForLogging = (cardInstance: CardInstance) => {
+    return {
         name: cardInstance.card.name,
         owner: cardInstance.state.owner?.getId(),
         controller: cardInstance.state.controller?.getId(),
     };
-    res = JSON.stringify(newObj);
-    return res;
+};
+
+export const cardToString = (cardInstance: CardInstance): string => {
+    return JSON.stringify(simplifyCardForLogging(cardInstance));
 };
 
 export default interface CardInstance {

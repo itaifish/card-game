@@ -4,7 +4,14 @@ import Hand from "../zone/Hand";
 import Library from "../zone/Library";
 import Exile from "../zone/Exile";
 import Stack from "../zone/Stack";
-import CardInstance, { CardType, copyPile, isCreature, isPermanent } from "../card/CardInstance";
+import CardInstance, {
+    cardToString,
+    CardType,
+    copyPile,
+    isCreature,
+    isPermanent,
+    simplifyCardForLogging,
+} from "../card/CardInstance";
 import EventEmitter, { GameEvent } from "../../utility/EventEmitter";
 import Server from "../../../server/Server";
 import { nextStep, Step } from "../phase/Phase";
@@ -362,6 +369,27 @@ export default class GameManager extends EventEmitter {
         });
         this.creaturesDie(creaturesToDie);
     }
+
+    /**
+     * Please don't  ask
+     */
+    stringifyGameState(): string {
+        return JSON.stringify(
+            this.playerList.map((player) => {
+                const zones = this.playerZoneMap.get(player.getId());
+                const zoneDataObj: { [zoneName: string]: any } = {};
+                Object.keys(zones).forEach((zone: "graveyard" | "battlefield" | "exile" | "hand" | "library") => {
+                    zoneDataObj[zone] = zones[zone]
+                        .getCards()
+                        .map((card: CardInstance) => simplifyCardForLogging(card));
+                });
+                return {
+                    [player.getId()]: zoneDataObj,
+                };
+            }),
+        );
+    }
+
     // TODO: implement canBeRegenerated
     creaturesDie(cards: CardInstance[], canBeRegenerated = true) {
         this.emit(GameEvent.PERMANENTS_LEAVE_BATTLEFIELD, cards, "Graveyard");
