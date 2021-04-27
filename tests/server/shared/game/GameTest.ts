@@ -10,28 +10,28 @@ import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
 import Library from "../../../../src/shared/game/zone/Library";
 import log, { LOG_LEVEL } from "../../../../src/shared/utility/logger";
 import { Step } from "../../../../src/shared/game/phase/Phase";
-import { emptyPool } from "../../../../src/shared/game/mana/Mana";
+import { emptyPool, generateManaPool, manaValueOf } from "../../../../src/shared/game/mana/Mana";
 
 describe("GameIntegrationTest", () => {
     test("gameMangerTest", () => {
         const server: Server = new Server();
         const cardNames = [
-            "Island",
-            "Swamp",
-            "Forest",
-            "Mountain",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
             "Plains",
             "Spencer's Favorite Card",
-            "Itai Has a Crush on a Girl",
-            "Island",
-            "Swamp",
-            "Forest",
-            "Mountain",
             "Plains",
-            "Island",
-            "Swamp",
-            "Forest",
-            "Mountain",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
+            "Plains",
             "Plains",
         ];
         const playerIds = [1, 2];
@@ -74,8 +74,25 @@ describe("GameIntegrationTest", () => {
                 const turnPlayer = gameManager.getPlayerWhoseTurnItIs();
                 if (gameManager.getStep() == Step.MAIN_PHASE_1 && player.getId() == turnPlayer.getId()) {
                     const hand = gameManager.getPlayerZoneMap().get(turnPlayer.getId()).hand;
+                    const battlefield = gameManager
+                        .getAllCardsOnBattlefield()
+                        .filter(
+                            (card) =>
+                                card.card.name == "Plains" &&
+                                (card.state.controller?.getId() || card.state.owner.getId()) == player.getId() &&
+                                !card.state.tapped,
+                        );
                     for (const card of hand.getCards()) {
-                        if (card.state.types.includes(CardType.LAND)) {
+                        if (
+                            card.card.name == "Spencer's Favorite Card" &&
+                            battlefield.length >= manaValueOf(card.card.cost)
+                        ) {
+                            battlefield.forEach((card) => {
+                                // tap the card
+                                gameManager.activateCardAbility(card, 0, emptyPool);
+                            });
+                            gameManager.playerPayForCard(generateManaPool("WWWWWWWW"), card);
+                        } else if (card.state.types.includes(CardType.LAND)) {
                             //log(`Playing card: ${cardToString(card)}`);
                             gameManager.playerPayForCard(emptyPool, card);
                             break;

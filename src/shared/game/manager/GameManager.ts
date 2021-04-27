@@ -5,22 +5,22 @@ import Library from "../zone/Library";
 import Exile from "../zone/Exile";
 import Stack from "../zone/Stack";
 import CardInstance, {
-    cardToString,
+    ActivatedAbility,
     CardType,
     copyPile,
     isCreature,
     isPermanent,
     simplifyCardForLogging,
 } from "../card/CardInstance";
-import EventEmitter, { GameEvent } from "../../utility/EventEmitter";
+import EventEmitter, { Callback, GameEvent } from "../../utility/EventEmitter";
 import Server from "../../../server/Server";
-import { nextStep, Step } from "../phase/Phase";
+import { nextStep, Step, stepToPhase } from "../phase/Phase";
 import log, { LOG_LEVEL } from "../../utility/logger";
 import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
 import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
-import { isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
+import { emptyPool, isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
 import CardOracle from "../card/CardOracle";
 
 interface PlayerZones {
@@ -100,6 +100,12 @@ export default class GameManager extends EventEmitter {
         this.on(GameEvent.BEGIN_STEP, (step: Step) => {
             if (step == Step.DRAW) {
                 this.playerDrawCard(this.getPlayerWhoseTurnItIs());
+            } else if (step == Step.UNTAP) {
+                // Untap cards in the untap step :)
+                this.playerZoneMap
+                    .get(this.getPlayerWhoseTurnItIs().getId())
+                    .battlefield.getCards()
+                    .forEach((card) => (card.state.tapped = false));
             }
         });
     }
@@ -157,7 +163,15 @@ export default class GameManager extends EventEmitter {
     passStep() {
         this.resetPriorityQueue();
         log(`Passing Step ${Step[this.gameStep]} into ${Step[nextStep(this.gameStep)]}`, this, LOG_LEVEL.TRACE);
+        const previousPhase = stepToPhase(this.gameStep);
         this.gameStep = nextStep(this.gameStep);
+        const currentPhase = stepToPhase(this.gameStep);
+        //if you pass phase, empty mana pool
+        if (previousPhase != currentPhase) {
+            this.playerList.forEach((player) => {
+                this.setPlayerManaPool(player, emptyPool);
+            });
+        }
         if (this.gameStep == Step.UNTAP) {
             this.passTurn();
         }
@@ -174,9 +188,41 @@ export default class GameManager extends EventEmitter {
     }
 
     playerPayForCard(manaPaid: ManaPool, card: CardInstance) {
-        const cost = card.card.cost;
+        const controller = card.state.controller || card.state.owner;
+        this.payCostAndThen(manaPaid, card, () => {
+            this.playCard(controller, card.state.id);
+        });
+    }
+
+    /**
+     * This function pays a cost and if the cost is successfully paid, calls the callback
+     * @param manaPaid The {@link ManaPool} that paid for the cost
+     * @param card The {@link CardInstance} that is being paid for OR the card whose {@link ActivatedAbility} is being paid for
+     * @param callBack The callback function to call afterwards
+     * @param abilityIndex An optional parameter if an ability is being paid for
+     * @private
+     */
+    private payCostAndThen(manaPaid: ManaPool, card: CardInstance, callBack: Callback, abilityIndex?: number) {
+        const cost = abilityIndex ? card.card.activatedAbilities[abilityIndex]?.cost.manaCost : card.card.cost;
+        if (cost == null) {
+            log(`Illegal ability index ${abilityIndex}`, this, LOG_LEVEL.ERROR);
+            return;
+        }
         const remaining = subtractCostFromManaPool(manaPaid, cost);
         const controller = card.state.controller || card.state.owner;
+        const playerManaPool = controller.getMana();
+        const playerManaCostDifference = subtractCostFromManaPool(playerManaPool, cost);
+        if (playerManaCostDifference == null) {
+            log(
+                `Player ${controller.getId()} only has ${stringifyMana(playerManaPool)}, they can't pay ${stringifyMana(
+                    manaPaid,
+                )}`,
+                this,
+                LOG_LEVEL.WARN,
+            );
+            return;
+        }
+        this.setPlayerManaPool(controller, playerManaCostDifference);
         if (remaining && isEmpty(remaining)) {
             log(
                 `Player ${controller.getId()} paying ${stringifyMana(cost)} with ${stringifyMana(manaPaid)} for card ${
@@ -185,7 +231,20 @@ export default class GameManager extends EventEmitter {
                 this,
                 LOG_LEVEL.TRACE,
             );
-            this.playCard(controller, card.state.id);
+            if (abilityIndex) {
+                if (card.card.activatedAbilities[abilityIndex].cost.tap) {
+                    if (card.state.tapped) {
+                        log(
+                            `Unable to pay for ${card.card.name}'s ability ${abilityIndex} because it is tapped and the ability requires a tap as a cost`,
+                            this,
+                            LOG_LEVEL.ERROR,
+                        );
+                        return;
+                    }
+                    card.state.tapped = true;
+                }
+            }
+            callBack();
         } else {
             log(
                 `Player ${controller.getId()} failed to pay ${stringifyMana(cost)} with exactly ${stringifyMana(
@@ -216,6 +275,27 @@ export default class GameManager extends EventEmitter {
         return this.priorityWaitingOn[0];
     }
 
+    activateCardAbility(card: CardInstance, abilityIndex: number, manaPaid: ManaPool) {
+        const ability = card.card.activatedAbilities[abilityIndex];
+        if (ability) {
+            log(`Activating ${card.card.name} ability ${abilityIndex}`, this, LOG_LEVEL.TRACE);
+            this.payCostAndThen(
+                manaPaid,
+                card,
+                () => {
+                    ability.ability(this, card.state);
+                },
+                abilityIndex,
+            );
+        } else {
+            log(
+                `Unable to Activate ${card.card.name} ability ${abilityIndex}, ${abilityIndex} is out of range ${card.card.activatedAbilities.length}`,
+                this,
+                LOG_LEVEL.WARN,
+            );
+        }
+    }
+
     playerDrawCard(player: Player, amount = 1) {
         const hand = this.playerZoneMap.get(player.getId()).hand;
         const library = this.playerZoneMap.get(player.getId()).library;
@@ -224,11 +304,13 @@ export default class GameManager extends EventEmitter {
 
     setPlayerLife(player: Player, newLife: number) {
         this.emit(GameEvent.PLAYER_CHANGE_LIFE, player.getLife, newLife);
+        log(`Setting player ${player.getId()} life to ${newLife} from ${player.getLife()}`, this, LOG_LEVEL.TRACE);
         player.setLife(newLife);
     }
 
     setPlayerManaPool(player: Player, newManaPool: ManaPool) {
         this.emit(GameEvent.PLAYER_NEW_MANA_POOL, player.getMana, newManaPool);
+        log(`Setting ${player.getId()}'s mana pool to ${stringifyMana(newManaPool)}`);
         player.setMana(newManaPool);
     }
 
@@ -275,6 +357,7 @@ export default class GameManager extends EventEmitter {
     }
 
     resolveCard(card: CardInstance) {
+        log(`Resolving card ${card.card.name}`, this, LOG_LEVEL.TRACE);
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
         } else {

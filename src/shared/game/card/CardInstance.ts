@@ -26,6 +26,7 @@ export interface CardState {
     types: CardType[];
     owner: Player;
     id: string;
+    tapped: boolean;
     controller?: Player; //default the owner
     revealedTo?: Player[]; // default based on zone
     status?: CardStatus;
@@ -67,6 +68,7 @@ export const instantiateCard = (card: Card, id: string, owner?: Player | null): 
             owner: owner,
             controller: owner,
             counters: [],
+            tapped: false,
             ...card.defaultState,
         },
     };
@@ -79,6 +81,7 @@ export const copyInstance = (cardToCopy: CardInstance, preserveState = false): C
         types: [...cardToCopy.state.types],
         owner: cardToCopy.state.owner,
         id: preserveState ? cardToCopy.state.id : uuid4(),
+        tapped: preserveState ? cardToCopy.state.tapped : false,
         status: preserveState
             ? {
                   damage: cardToCopy.state.status?.damage,

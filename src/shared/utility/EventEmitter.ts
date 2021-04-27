@@ -14,7 +14,7 @@ export enum GameEvent {
     PLAYER_NEW_MANA_POOL,
 }
 
-type Callback = (...args: any[]) => void;
+export type Callback = (...args: any[]) => void;
 
 export default abstract class EventEmitter {
     private readonly events: Map<GameEvent, Map<string, Callback>>;

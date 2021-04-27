@@ -1,5 +1,5 @@
 import CardInstance from "../card/CardInstance";
-import { ManaPool } from "../mana/Mana";
+import { emptyPool, ManaPool } from "../mana/Mana";
 
 export default class Player {
     private readonly id: number;
@@ -14,6 +14,7 @@ export default class Player {
         this.startingLibrary = startingLibrary;
         this.landsPlayed = 0;
         this.life = 0;
+        this.mana = emptyPool;
     }
 
     getId = (): number => {

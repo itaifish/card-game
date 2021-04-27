@@ -124,6 +124,18 @@ export const stringifyMana = (manaCost: ManaCost | ManaPool | null): string => {
     return returnString;
 };
 
+export const manaValueOf = (manaCost: ManaCost) => {
+    return (
+        manaCost.Generic +
+        manaCost.Red +
+        manaCost.Black +
+        manaCost.Blue +
+        manaCost.Green +
+        manaCost.Colorless +
+        manaCost.White
+    );
+};
+
 export const generateManaPool = (manaPoolString: string): ManaPool => {
     const manaPool: ManaPool = {
         White: 0,

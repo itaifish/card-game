@@ -17,7 +17,7 @@ const addManaAbility = (manaToAdd: string): ActivatedAbility => {
             manaCost: emptyCost,
         },
         ability: (gameManager: GameManager, state: CardState) => {
-            const player = state.controller;
+            const player = state.controller || state.owner;
             gameManager.setPlayerManaPool(player, addManaPools(player.getMana(), generateManaPool(manaToAdd)));
         },
     };
@@ -84,7 +84,7 @@ export default class CardOracle {
             name: "Spencer's Favorite Card",
             cost: generateManaCost("WWW5"),
             ability: (gameManager, state) => {
-                const caster = state.controller;
+                const caster = state.controller || state.owner;
                 gameManager.setPlayerLife(caster, caster.getLife() + 25);
             },
             activatedAbilities: [],
