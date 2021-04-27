@@ -41,20 +41,20 @@ export default class Server {
 
     listen(): void {
         this.io.on("connection", (socket: socketio.Socket) => {
-            log("Client connected", this.constructor.name, LOG_LEVEL.INFO);
+            log("Client connected", this, LOG_LEVEL.INFO);
 
             // Default behaviors
             socket.on(MessageEnum.DISCONNECT, (reason: string) => {
-                log(`Client disconnected with reason ${reason}`, this.constructor.name, LOG_LEVEL.INFO);
+                log(`Client disconnected with reason ${reason}`, this, LOG_LEVEL.INFO);
                 this.userManager.userDisconnected(socket.id);
             });
             socket.on(MessageEnum.ERROR, (error: unknown) => {
-                log(`Error: ${JSON.stringify(error)}`, this.constructor.name, LOG_LEVEL.INFO);
+                log(`Error: ${JSON.stringify(error)}`, this, LOG_LEVEL.INFO);
             });
         });
 
         this.httpServer.listen(this.port, () => {
-            log(`listening on *:${Constants.DEFAULT_PORT}`, this.constructor.name, LOG_LEVEL.INFO);
+            log(`listening on *:${Constants.DEFAULT_PORT}`, this, LOG_LEVEL.INFO);
         });
     }
 
@@ -81,7 +81,7 @@ export default class Server {
         } else {
             log(
                 `Unable to find user or game for player id: ${playerId}\nuser: ${user}\ngame:${game}`,
-                this.constructor.name,
+                this,
                 LOG_LEVEL.WARN,
             );
         }

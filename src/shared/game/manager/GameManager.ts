@@ -81,7 +81,7 @@ export default class GameManager extends EventEmitter {
             const newLibrary = new Library(player, copiedLibrary);
             newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
                 // TODO: Player loses game
-                log(`Player ${player} has drawn past their deck`, this.constructor.name, LOG_LEVEL.INFO);
+                log(`Player ${player} has drawn past their deck`, this, LOG_LEVEL.INFO);
             });
             newLibrary.on(GameEvent.PLAYER_DRAW, () => {
                 this.emit(GameEvent.PLAYER_DRAW, newLibrary);
@@ -116,9 +116,9 @@ export default class GameManager extends EventEmitter {
         const card = this.stack.getCard(cardId);
         if (card) {
             card.state.targetIds = targetIds;
-            log(`Setting targets for card: ${cardId}: ${targetIds}`, this.constructor.name, LOG_LEVEL.TRACE);
+            log(`Setting targets for card: ${cardId}: ${targetIds}`, this, LOG_LEVEL.TRACE);
         } else {
-            log(`Unable to find ID ${cardId} on the stack`, this.constructor.name, LOG_LEVEL.WARN);
+            log(`Unable to find ID ${cardId} on the stack`, this, LOG_LEVEL.WARN);
         }
     }
 
@@ -129,7 +129,7 @@ export default class GameManager extends EventEmitter {
      */
     passPriority(playerId: number): Player | null {
         if (playerId == null) {
-            log("Player is null", this.constructor.name, LOG_LEVEL.WARN);
+            log("Player is null", this, LOG_LEVEL.WARN);
             return;
         }
         if (this.getActivePlayer().getId() === playerId) {
@@ -137,7 +137,7 @@ export default class GameManager extends EventEmitter {
         } else {
             log(
                 `Active player is not ${playerId}, but is instead ${this.getActivePlayer().getId()}`,
-                this.constructor.name,
+                this,
                 LOG_LEVEL.WARN,
             );
         }
@@ -150,17 +150,13 @@ export default class GameManager extends EventEmitter {
                 this.resetPriorityQueue();
             }
         }
-        log(`Active player is now ${this.getActivePlayer().getId()}`, this.constructor.name, LOG_LEVEL.TRACE);
+        log(`Active player is now ${this.getActivePlayer().getId()}`, this, LOG_LEVEL.TRACE);
         return this.getActivePlayer();
     }
 
     passStep() {
         this.resetPriorityQueue();
-        log(
-            `Passing Step ${Step[this.gameStep]} into ${Step[nextStep(this.gameStep)]}`,
-            this.constructor.name,
-            LOG_LEVEL.TRACE,
-        );
+        log(`Passing Step ${Step[this.gameStep]} into ${Step[nextStep(this.gameStep)]}`, this, LOG_LEVEL.TRACE);
         this.gameStep = nextStep(this.gameStep);
         if (this.gameStep == Step.UNTAP) {
             this.passTurn();
@@ -169,10 +165,10 @@ export default class GameManager extends EventEmitter {
     }
 
     getTargetsFromPlayerForCard(cardId: string, playerId: number, targets: SelectionCriteria[]) {
-        log(`Asking player: ${playerId} to choose targets: ${targets}`, this.constructor.name, LOG_LEVEL.TRACE);
+        log(`Asking player: ${playerId} to choose targets: ${targets}`, this, LOG_LEVEL.TRACE);
         this.server.getTargetsFromPlayerForCard(cardId, playerId, targets);
         this.once(GameEvent.PLAYER_CHOOSE_TARGETS, (chosenCardIds: string[]) => {
-            log(`Received targets: ${chosenCardIds} for card: ${cardId}`, this.constructor.name, LOG_LEVEL.TRACE);
+            log(`Received targets: ${chosenCardIds} for card: ${cardId}`, this, LOG_LEVEL.TRACE);
             this.setCardTargets(cardId, chosenCardIds);
         });
     }
@@ -186,7 +182,7 @@ export default class GameManager extends EventEmitter {
                 `Player ${controller.getId()} paying ${stringifyMana(cost)} with ${stringifyMana(manaPaid)} for card ${
                     card.card.name
                 }`,
-                this.constructor.name,
+                this,
                 LOG_LEVEL.TRACE,
             );
             this.playCard(controller, card.state.id);
@@ -195,7 +191,7 @@ export default class GameManager extends EventEmitter {
                 `Player ${controller.getId()} failed to pay ${stringifyMana(cost)} with exactly ${stringifyMana(
                     manaPaid,
                 )} for card ${card.card.name}: Remaining is: ${stringifyMana(remaining)}`,
-                this.constructor.name,
+                this,
                 LOG_LEVEL.TRACE,
             );
         }
@@ -203,11 +199,7 @@ export default class GameManager extends EventEmitter {
 
     passTurn() {
         const activePlayer = this.getPlayerWhoseTurnItIs();
-        log(
-            `Passing Turn ${this.turnNumber} for player ${activePlayer.getId()}`,
-            this.constructor.name,
-            LOG_LEVEL.TRACE,
-        );
+        log(`Passing Turn ${this.turnNumber} for player ${activePlayer.getId()}`, this, LOG_LEVEL.TRACE);
         activePlayer.resetTurn();
         this.playersTurnIndex++;
         if (this.playersTurnIndex >= this.playerList.length) {
@@ -249,15 +241,11 @@ export default class GameManager extends EventEmitter {
                 if (cardRemoved.state.types.includes(CardType.LAND)) {
                     this.instantiatePermanent(cardRemoved, player);
                     player.playerPlayedLand();
-                    log(
-                        `Player ${player.getId()} played land: ${cardRemoved.card.name}`,
-                        this.constructor.name,
-                        LOG_LEVEL.TRACE,
-                    );
+                    log(`Player ${player.getId()} played land: ${cardRemoved.card.name}`, this, LOG_LEVEL.TRACE);
                 } else {
                     log(
                         `Player ${player.getId()} putting ${cardRemoved.card.name} on the stack`,
-                        this.constructor.name,
+                        this,
                         LOG_LEVEL.TRACE,
                     );
                     this.stack.push(cardRemoved);
@@ -265,27 +253,19 @@ export default class GameManager extends EventEmitter {
             } else {
                 log(
                     `Player ${player.getId()} tried to play a card ${cardId} but that card is not in their hand`,
-                    this.constructor.name,
+                    this,
                     LOG_LEVEL.WARN,
                 );
             }
         } else {
-            log(
-                `Player ${player.getId()} tried to play a card when it wasn't their turn`,
-                this.constructor.name,
-                LOG_LEVEL.WARN,
-            );
+            log(`Player ${player.getId()} tried to play a card when it wasn't their turn`, this, LOG_LEVEL.WARN);
         }
         this.evaluateStateBasedActions();
     }
 
     private instantiatePermanent(card: CardInstance, controller?: Player): void {
         if (!isPermanent(card)) {
-            log(
-                `Card ${card} is not a permanent, should not be instantiated as such`,
-                this.constructor.name,
-                LOG_LEVEL.WARN,
-            );
+            log(`Card ${card} is not a permanent, should not be instantiated as such`, this, LOG_LEVEL.WARN);
             return;
         }
         const permanentController = controller || card.state.controller || card.state.owner;
@@ -333,7 +313,7 @@ export default class GameManager extends EventEmitter {
      * @private
      */
     private evaluateStateBasedActions(): void {
-        log("Evaluating State Based Actions...", this.constructor.name, LOG_LEVEL.TRACE);
+        log("Evaluating State Based Actions...", this, LOG_LEVEL.TRACE);
         // Player loses the game
         const losers: Player[] = [];
         this.playerList.forEach((player) => {

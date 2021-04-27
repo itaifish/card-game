@@ -43,7 +43,7 @@ export default class DummyUser implements User {
                 } else {
                     log(
                         `Unable to find a valid card for the criteria: ${JSON.stringify(critera)}`,
-                        this.constructor.name,
+                        this,
                         LOG_LEVEL.ERROR,
                     );
                     throw new Error("No Valid Cards to Target");

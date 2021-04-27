@@ -55,26 +55,22 @@ export default class Client {
             this.messageCallbacks[MessageEnum[key]] = [];
         }
         this.updateBoardStateCallback = () => {
-            log("This function should absolutely never be called", this.constructor.name, LOG_LEVEL.WARN);
+            log("This function should absolutely never be called", this, LOG_LEVEL.WARN);
         };
     }
 
     listen(): void {
         this.socket.on(MessageEnum.CONNECT, () => {
-            log(`Socket has connected (${this.socket.connected})`, this.constructor.name, LOG_LEVEL.INFO);
+            log(`Socket has connected (${this.socket.connected})`, this, LOG_LEVEL.INFO);
             this.runAndRemoveCallbacks(MessageEnum.CONNECT);
         });
         this.socket.on(MessageEnum.DISCONNECT, () => {
             this.loginStatus = null;
-            log(`Socket has disconnected (${this.socket.connected})`, this.constructor.name, LOG_LEVEL.INFO);
+            log(`Socket has disconnected (${this.socket.connected})`, this, LOG_LEVEL.INFO);
             this.runAndRemoveCallbacks(MessageEnum.DISCONNECT);
         });
         this.socket.on(MessageEnum.LOGIN, (msg: LoginMessageResponse) => {
-            log(
-                `Your login status is now: ${LoginMessageResponseType[msg.status]}`,
-                this.constructor.name,
-                LOG_LEVEL.INFO,
-            );
+            log(`Your login status is now: ${LoginMessageResponseType[msg.status]}`, this, LOG_LEVEL.INFO);
             this.loginStatus = msg.status;
             this.userId = msg.id;
             this.runAndRemoveCallbacks(MessageEnum.LOGIN);
@@ -84,9 +80,9 @@ export default class Client {
             this.runAndRemoveCallbacks(MessageEnum.CREATE_ACCOUNT);
         });
         this.socket.on(MessageEnum.GET_LOBBIES, (response: GetLobbiesResponse) => {
-            log(`Got this response: ${JSON.stringify(response)}`, this.constructor.name, LOG_LEVEL.DEBUG);
+            log(`Got this response: ${JSON.stringify(response)}`, this, LOG_LEVEL.DEBUG);
             this.lobbyList = response.lobbies;
-            log(`Got ${this.lobbyList.length} lobbies`, this.constructor.name, LOG_LEVEL.INFO);
+            log(`Got ${this.lobbyList.length} lobbies`, this, LOG_LEVEL.INFO);
             this.runAndRemoveCallbacks(MessageEnum.GET_LOBBIES);
         });
     }

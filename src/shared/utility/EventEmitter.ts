@@ -33,7 +33,7 @@ export default abstract class EventEmitter {
     clearEvent(id: string): void {
         const event = this.idToEvent.get(id);
         if (!event) {
-            log(`ID ${id} does not exist`, this.constructor.name, LOG_LEVEL.WARN);
+            log(`ID ${id} does not exist`, this, LOG_LEVEL.WARN);
             return;
         }
         this.events.get(event).delete(id);
@@ -59,7 +59,7 @@ export default abstract class EventEmitter {
      */
     once(emittedEvent: GameEvent, callback: Callback): void {
         const id = this.on(emittedEvent, () => {
-            log("This function should never be called", this.constructor.name, LOG_LEVEL.ERROR);
+            log("This function should never be called", this, LOG_LEVEL.ERROR);
         });
         this.events.get(emittedEvent).set(id, (...args) => {
             callback(...args);

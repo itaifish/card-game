@@ -141,7 +141,7 @@ export default class UserPlayerManager {
     givePlayerPriority(player: Player) {
         const user: User = this.getUserFromUserId(player.getId());
         if (!user) {
-            log(`${player.getId()} can not be found/associated with any user`, this.constructor.name, LOG_LEVEL.ERROR);
+            log(`${player.getId()} can not be found/associated with any user`, this, LOG_LEVEL.ERROR);
         } else {
             user.socket.emit(MessageEnum.PASSED_PRIORITY);
         }

@@ -40,7 +40,7 @@ export default class CardOracle {
         if (card) {
             return card;
         }
-        log(`Unable to find card for name ${cardName}`, this.constructor.name, LOG_LEVEL.WARN);
+        log(`Unable to find card for name ${cardName}`, this, LOG_LEVEL.WARN);
         return null;
     }
 
