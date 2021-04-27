@@ -22,6 +22,25 @@ export interface ManaPool {
     Colorless: number;
 }
 
+export const emptyCost: ManaCost = {
+    White: 0,
+    Blue: 0,
+    Red: 0,
+    Green: 0,
+    Black: 0,
+    Generic: 0,
+    Colorless: 0,
+};
+
+export const emptyPool: ManaPool = {
+    White: 0,
+    Blue: 0,
+    Red: 0,
+    Green: 0,
+    Black: 0,
+    Colorless: 0,
+};
+
 export const addManaPools = (manaPool1: ManaPool, manaPool2: ManaPool): ManaPool => {
     const newManaPool: ManaPool = {
         White: 0,
@@ -85,7 +104,10 @@ export const subtractCostFromManaPool = (pool: ManaPool, cost: ManaCost): ManaPo
     return newPool;
 };
 
-export const stringifyManaCost = (manaCost: ManaCost): string => {
+export const stringifyMana = (manaCost: ManaCost | ManaPool | null): string => {
+    if (manaCost == null) {
+        return "null";
+    }
     let returnString = "";
     Object.keys(manaCost).forEach((mana: manaCostTypes) => {
         if (mana != "Generic") {
@@ -95,8 +117,9 @@ export const stringifyManaCost = (manaCost: ManaCost): string => {
         }
     });
     // if generic manacost is more than 0 or the string isn't empty add the generic cost to the end
-    if (manaCost.Generic > 0 || returnString.length === 0) {
-        returnString += manaCost.Generic;
+    const generic = "Generic" in manaCost ? manaCost.Generic : 0;
+    if (generic > 0 || returnString.length === 0) {
+        returnString += generic;
     }
     return returnString;
 };

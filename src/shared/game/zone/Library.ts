@@ -30,6 +30,6 @@ export default class Library extends NonSharedZone {
         }
         const cardsToGoToHand = cards.splice(cards.length - amount);
         hand.addCards(cardsToGoToHand);
-        this.emit(GameEvent.PLAYER_DRAW, this.getOwner());
+        this.emit(GameEvent.PLAYER_DRAW, this.getOwner(), amount);
     };
 }

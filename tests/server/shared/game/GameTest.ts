@@ -2,14 +2,15 @@ import Server from "../../../../src/server/Server";
 import GameManager from "../../../../src/shared/game/manager/GameManager";
 import Player from "../../../../src/shared/game/player/Player";
 import DummyUser from "../../../../src/server/dummy/DummyUser";
-import CardInstance, { instantiateCard } from "../../../../src/shared/game/card/CardInstance";
+import CardInstance, { cardToString, CardType, instantiateCard } from "../../../../src/shared/game/card/CardInstance";
 import CardOracle from "../../../../src/shared/game/card/CardOracle";
 import uuid4 from "uuid4";
 import GameSettings from "../../../../src/shared/game/settings/GameSettings";
 import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
 import Library from "../../../../src/shared/game/zone/Library";
-import log from "../../../../src/shared/utility/logger";
+import log, { LOG_LEVEL } from "../../../../src/shared/utility/logger";
 import { Step } from "../../../../src/shared/game/phase/Phase";
+import { emptyPool } from "../../../../src/shared/game/mana/Mana";
 
 describe("GameIntegrationTest", () => {
     test("gameMangerTest", () => {
@@ -22,6 +23,16 @@ describe("GameIntegrationTest", () => {
             "Plains",
             "Spencer's Favorite Card",
             "Itai Has a Crush on a Girl",
+            "Island",
+            "Swamp",
+            "Forest",
+            "Mountain",
+            "Plains",
+            "Island",
+            "Swamp",
+            "Forest",
+            "Mountain",
+            "Plains",
         ];
         const playerIds = [1, 2];
         const players: Player[] = [];
@@ -32,6 +43,7 @@ describe("GameIntegrationTest", () => {
             const player: Player = new Player(playerId, cards);
             cards.forEach((card) => {
                 card.state.owner = player;
+                card.state.controller = player;
             });
             players.push(player);
         });
@@ -51,10 +63,25 @@ describe("GameIntegrationTest", () => {
         gameManager.on(GameEvent.PLAYER_DRAW, (library: Library) => {
             numCardsDrawn++;
         });
+        gameManager.on(GameEvent.PERMANENTS_ENTER_BATTLEFIELD, (cards: CardInstance[]) => {
+            log(`Permanent(s) enter: ${JSON.stringify(cards.map((card) => card.card.name))}`);
+        });
         const numTurns = cardNames.length * 2;
         const numPriorityPasses = numTurns * (Object.keys(Step).length / 2 + 1);
         for (let x = 0; x < numPriorityPasses; x++) {
-            for (const player of players) {
+            for (let i = 0; i < 2; i++) {
+                const player = gameManager.getActivePlayer();
+                const turnPlayer = gameManager.getPlayerWhoseTurnItIs();
+                if (gameManager.getStep() == Step.MAIN_PHASE_1 && player.getId() == turnPlayer.getId()) {
+                    const hand = gameManager.getPlayerZoneMap().get(turnPlayer.getId()).hand;
+                    for (const card of hand.getCards()) {
+                        if (card.state.types.includes(CardType.LAND)) {
+                            //log(`Playing card: ${cardToString(card)}`);
+                            gameManager.playerPayForCard(emptyPool, card);
+                            break;
+                        }
+                    }
+                }
                 gameManager.passPriority(player.getId());
             }
         }

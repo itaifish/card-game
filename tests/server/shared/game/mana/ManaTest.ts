@@ -2,7 +2,7 @@ import {
     generateManaCost,
     generateManaPool,
     isEmpty,
-    stringifyManaCost,
+    stringifyMana,
     subtractCostFromManaPool,
 } from "../../../../../src/shared/game/mana/Mana";
 import { expect } from "@jest/globals";
@@ -28,11 +28,11 @@ describe("ManaTest", () => {
     });
     test("bidirectionalManaCost", () => {
         let manaCost = generateManaCost("WU4");
-        let manaString = stringifyManaCost(manaCost);
+        let manaString = stringifyMana(manaCost);
         let newManaCost = generateManaCost(manaString);
         expect(newManaCost).toEqual(manaCost);
         manaCost = generateManaCost("WWWURRR");
-        manaString = stringifyManaCost(manaCost);
+        manaString = stringifyMana(manaCost);
         newManaCost = generateManaCost(manaString);
         expect(newManaCost).toEqual(manaCost);
     });

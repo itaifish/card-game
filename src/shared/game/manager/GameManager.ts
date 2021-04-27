@@ -13,7 +13,7 @@ import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
 import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
-import { ManaPool } from "../mana/Mana";
+import { isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
 import CardOracle from "../card/CardOracle";
 
 interface PlayerZones {
@@ -32,8 +32,6 @@ interface GameResult {
 
 export default class GameManager extends EventEmitter {
     private readonly playerZoneMap: Map<number, PlayerZones>;
-
-    //private readonly playerMap: Map<number, Player>;
 
     private readonly stack: Stack;
 
@@ -88,8 +86,9 @@ export default class GameManager extends EventEmitter {
                 exile: new Exile(player),
                 battlefield: new Battlefield(player),
             });
-            //this.playerMap.set(player.getId(), player);
+            newLibrary.shuffle();
             player.setLife(settings.startingLife);
+            this.playerDrawCard(player, 7);
         });
         this.on(GameEvent.BEGIN_STEP, (step: Step) => {
             if (step == Step.DRAW) {
@@ -171,9 +170,28 @@ export default class GameManager extends EventEmitter {
         });
     }
 
-    playerPayForCard(manaPaid: ManaPool) {
-        const card = this.stack.peek();
+    playerPayForCard(manaPaid: ManaPool, card: CardInstance) {
         const cost = card.card.cost;
+        const remaining = subtractCostFromManaPool(manaPaid, cost);
+        const controller = card.state.controller || card.state.owner;
+        if (remaining && isEmpty(remaining)) {
+            log(
+                `Player ${controller.getId()} paying ${stringifyMana(cost)} with ${stringifyMana(manaPaid)} for card ${
+                    card.card.name
+                }`,
+                this.constructor.name,
+                LOG_LEVEL.TRACE,
+            );
+            this.playCard(controller, card.state.id);
+        } else {
+            log(
+                `Player ${controller.getId()} failed to pay ${stringifyMana(cost)} with exactly ${stringifyMana(
+                    manaPaid,
+                )} for card ${card.card.name}: Remaining is: ${stringifyMana(remaining)}`,
+                this.constructor.name,
+                LOG_LEVEL.TRACE,
+            );
+        }
     }
 
     passTurn() {
@@ -224,10 +242,14 @@ export default class GameManager extends EventEmitter {
                 if (cardRemoved.state.types.includes(CardType.LAND)) {
                     this.instantiatePermanent(cardRemoved, player);
                     player.playerPlayedLand();
-                    log(`Player ${player.getId()} played land: ${cardRemoved}`, this.constructor.name, LOG_LEVEL.TRACE);
+                    log(
+                        `Player ${player.getId()} played land: ${cardRemoved.card.name}`,
+                        this.constructor.name,
+                        LOG_LEVEL.TRACE,
+                    );
                 } else {
                     log(
-                        `Player ${player.getId()} putting ${cardRemoved} on the stack`,
+                        `Player ${player.getId()} putting ${cardRemoved.card.name} on the stack`,
                         this.constructor.name,
                         LOG_LEVEL.TRACE,
                     );
@@ -269,6 +291,8 @@ export default class GameManager extends EventEmitter {
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
         } else {
+            card.card.ability(this, card.state);
+            this.playerZoneMap.get(card.state.owner.getId()).graveyard.addCard(card);
         }
         this.evaluateStateBasedActions();
     }
@@ -348,5 +372,13 @@ export default class GameManager extends EventEmitter {
             this.playerZoneMap.get(owner.getId()).graveyard.addCard(card);
         });
         this.emit(GameEvent.CARDS_ENTER_GRAVEYARD, cards);
+    }
+
+    getStep(): Step {
+        return this.gameStep;
+    }
+
+    getPlayerZoneMap(): Map<number, PlayerZones> {
+        return this.playerZoneMap;
     }
 }

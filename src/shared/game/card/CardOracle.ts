@@ -1,7 +1,7 @@
 import CardInstance, { ActivatedAbility, Card, CardState, CardType } from "./CardInstance";
 import MathUtility from "../../utility/math";
 import log, { LOG_LEVEL } from "../../utility/logger";
-import ManaCost, { addManaPools, generateManaCost, generateManaPool } from "../mana/Mana";
+import ManaCost, { addManaPools, emptyCost, generateManaCost, generateManaPool } from "../mana/Mana";
 import GameManager from "../manager/GameManager";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -9,13 +9,12 @@ const doesNothing = () => {};
 const landState = {
     types: [CardType.LAND],
 };
-const freeManaCost: ManaCost = generateManaCost("0");
 
 const addManaAbility = (manaToAdd: string): ActivatedAbility => {
     return {
         cost: {
             tap: true,
-            manaCost: freeManaCost,
+            manaCost: emptyCost,
         },
         ability: (gameManager: GameManager, state: CardState) => {
             const player = state.controller;
@@ -48,35 +47,35 @@ export default class CardOracle {
     private static readonly cardList: { [cardName: string]: Card } = {
         Island: {
             name: "Island",
-            cost: freeManaCost,
+            cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("U")],
             defaultState: landState,
         },
         Forest: {
             name: "Forest",
-            cost: freeManaCost,
+            cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("G")],
             defaultState: landState,
         },
         Swamp: {
             name: "Swamp",
-            cost: freeManaCost,
+            cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("B")],
             defaultState: landState,
         },
         Plains: {
             name: "Plains",
-            cost: freeManaCost,
+            cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("W")],
             defaultState: landState,
         },
         Mountain: {
             name: "Mountain",
-            cost: freeManaCost,
+            cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("R")],
             defaultState: landState,

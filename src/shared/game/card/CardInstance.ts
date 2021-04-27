@@ -65,6 +65,7 @@ export const instantiateCard = (card: Card, id: string, owner?: Player | null): 
         state: {
             id: id,
             owner: owner,
+            controller: owner,
             counters: [],
             ...card.defaultState,
         },
@@ -114,6 +115,17 @@ export const isPermanent = (cardInstance: CardInstance): boolean => {
 
 export const isCreature = (cardInstance: CardInstance): boolean => {
     return cardInstance.state.types.includes(CardType.CREATURE);
+};
+
+export const cardToString = (cardInstance: CardInstance): string => {
+    let res = "";
+    const newObj = {
+        name: cardInstance.card.name,
+        owner: cardInstance.state.owner?.getId(),
+        controller: cardInstance.state.controller?.getId(),
+    };
+    res = JSON.stringify(newObj);
+    return res;
 };
 
 export default interface CardInstance {
