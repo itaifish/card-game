@@ -25,7 +25,7 @@ export default class GamesManager extends LobbyManger {
             const teams = lobby.getPlayerTeamMap().keys();
             let currentPlayersTeam: number = null;
             for (const team of teams) {
-                if (lobby.getPlayerTeamMap().get(team).has(player.getId())) {
+                if (lobby.getPlayerTeamMap().get(team).has(player.id)) {
                     currentPlayersTeam = team;
                     break;
                 }
@@ -34,7 +34,13 @@ export default class GamesManager extends LobbyManger {
         });
         this.lobbyToGameManagerMap.set(
             lobby.getId(),
-            new GameManager(lobby.getId(), this.server, lobby.getPlayers(), lobby.getSettings()),
+            new GameManager(
+                lobby.getId(),
+                this.server,
+                lobby.getPlayers().map((user) => user.player),
+                lobby.getSettings(),
+                lobby.getRoomName(),
+            ),
         );
         return this.lobbyToGameManagerMap.get(lobby.getId());
     }

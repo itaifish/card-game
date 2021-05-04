@@ -1,5 +1,5 @@
 import * as React from "react";
-import LobbySettings from "../../server/room/lobby/lobbySettings";
+import LobbySettings from "../../server/room/lobby/LobbySettings";
 
 export interface LobbyCreatorComponentProps {
     username: string;

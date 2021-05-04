@@ -4,7 +4,7 @@ import MessageEnum from "../../shared/communication/messageEnum";
 import LobbyComponent from "./LobbyComponent";
 import { ClientLobby } from "../../shared/communication/messageInterfaces/lobbyMessage";
 import LobbyCreatorComponent from "./LobbyCreatorComponent";
-import LobbySettings from "../../server/room/lobby/lobbySettings";
+import LobbySettings from "../../server/room/lobby/LobbySettings";
 import ServerStatsMessage from "../../shared/communication/messageInterfaces/serverStatsMessage";
 
 export interface LobbyListComponentProps {

@@ -6,16 +6,22 @@ export default class Player {
     private readonly startingLibrary: CardInstance[];
     private life: number;
     private mana: ManaPool;
+    private readonly team: number;
 
     private landsPlayed: number;
 
-    constructor(id: number, startingLibrary: CardInstance[]) {
+    constructor(team: number, id: number, startingLibrary: CardInstance[]) {
+        this.team = team;
         this.id = id;
         this.startingLibrary = startingLibrary;
         this.landsPlayed = 0;
         this.life = 0;
         this.mana = emptyPool;
     }
+
+    getTeam = (): number => {
+        return this.team;
+    };
 
     getId = (): number => {
         return this.id;

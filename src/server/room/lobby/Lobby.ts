@@ -1,14 +1,14 @@
 import Room from "../room";
-import LobbySettings from "./lobbySettings";
-import log, { LOG_LEVEL } from "../../../shared/utility/logger";
 import Player from "../../../shared/game/player/Player";
 import GameSettings from "../../../shared/game/settings/GameSettings";
+import { ClientLobby, ClientUser } from "../../../shared/communication/messageInterfaces/MessageInterfaces";
+import { User } from "../../manager/UserPlayerManager";
 
 export default class Lobby implements Room {
     private readonly settings: GameSettings;
     private readonly id: string;
-    private lobbyLeader: Player;
-    private players: Player[];
+    private lobbyLeader: User;
+    private players: User[];
     /*
     {
         [teamId: number]: {
@@ -16,15 +16,15 @@ export default class Lobby implements Room {
         };
     }
      */
-    private readonly playerTeamMap: Map<number, Map<number, Player>>;
+    private readonly playerTeamMap: Map<number, Map<number, User>>;
 
-    constructor(id: string, initialPlayer: Player, settings: GameSettings) {
+    constructor(id: string, initialPlayer: User, settings: GameSettings) {
         this.settings = settings;
         this.players = [];
-        this.playerTeamMap = new Map<number, Map<number, Player>>();
+        this.playerTeamMap = new Map<number, Map<number, User>>();
         this.id = id;
         for (let i = 0; i < settings.numTeams; i++) {
-            this.playerTeamMap.set(i, new Map<number, Player>());
+            this.playerTeamMap.set(i, new Map<number, User>());
         }
         this.playerJoinTeam(initialPlayer, 0);
         this.lobbyLeader = initialPlayer;
@@ -39,7 +39,7 @@ export default class Lobby implements Room {
      * @param teamId ID of the team to join
      * @returns whether or not the player was able to join
      */
-    playerJoinTeam(player: Player, teamId: number): boolean {
+    playerJoinTeam(player: User, teamId: number): boolean {
         // Have player leave before rejoining to prevent the same player in more than one slot
         // Save the lobby leader since having a player leave a lobby for real resets the lobby leader
         let lobbyLeaderSave = null;
@@ -53,7 +53,7 @@ export default class Lobby implements Room {
         const team = this.playerTeamMap.get(teamId);
         if (team) {
             if (Object.keys(team).length < this.settings.playersPerTeam) {
-                team.set(player.getId(), player);
+                team.set(player.id, player);
                 //player.status = UserStatus.IN_LOBBY;
                 this.players.push(player);
                 return true;
@@ -65,11 +65,11 @@ export default class Lobby implements Room {
      * This function removes a player from the lobby
      * @param playerLeaving user who has left the lobby
      */
-    playerLeaveLobby(playerLeaving: Player): void {
+    playerLeaveLobby(playerLeaving: User): void {
         // remove player leaving from list of players
-        this.players = this.players.filter((player) => player.getId() != playerLeaving.getId());
+        this.players = this.players.filter((player) => player.id != playerLeaving.id);
         this.playerTeamMap.forEach((teamPlayers) => {
-            if (teamPlayers.delete(playerLeaving.getId())) {
+            if (teamPlayers.delete(playerLeaving.id)) {
                 //playerLeaving.status = UserStatus.ONLINE;
                 if (this.lobbyLeader == playerLeaving) {
                     this.lobbyLeader = this.players[0] || null;
@@ -87,25 +87,42 @@ export default class Lobby implements Room {
         return this.id;
     }
 
-    getPlayers(): Player[] {
+    getPlayers(): User[] {
         return this.players;
     }
 
-    getLobbyLeader(): Player {
+    getLobbyLeader(): User {
         return this.lobbyLeader;
     }
 
-    getPlayerTeamMap(): Map<number, Map<number, Player>> {
+    getPlayerTeamMap(): Map<number, Map<number, User>> {
         return this.playerTeamMap;
     }
 
-    // asClientLobby(): ClientLobby {
-    //     return {
-    //         settings: this.settings,
-    //         id: this.id,
-    //         lobbyLeader: this.lobbyLeader,
-    //         players: this.players,
-    //         playerTeamMap: playerTeamMap,
-    //     };
-    // }
+    asClientLobby(): ClientLobby {
+        const playerTeamMap: {
+            [teamId: number]: {
+                [userId: number]: ClientUser;
+            };
+        } = {};
+        Object.keys(this.playerTeamMap).forEach((teamId) => {
+            const teamIdInt = parseInt(teamId);
+            playerTeamMap[teamIdInt] = {};
+            Object.keys(this.playerTeamMap.get(teamIdInt)).forEach((userId) => {
+                const userIdInt = parseInt(userId);
+                const user = this.playerTeamMap.get(teamIdInt).get(userIdInt);
+                playerTeamMap[teamIdInt][userIdInt] = {
+                    username: user.username,
+                    id: user.id,
+                };
+            });
+        });
+        return {
+            settings: this.settings,
+            id: this.id,
+            lobbyLeader: this.lobbyLeader.id,
+            players: this.players.map((player) => player.id),
+            playerTeamMap: playerTeamMap,
+        };
+    }
 }

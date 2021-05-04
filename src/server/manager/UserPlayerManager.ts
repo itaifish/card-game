@@ -131,10 +131,10 @@ export default class UserPlayerManager {
         }
     }
 
-    createPlayerFromUser(user: User | number, startingLibrary: CardInstance[]): User {
+    createPlayerFromUser(user: User | number, startingLibrary: CardInstance[], teamId: number): User {
         const userId = typeof user == "number" ? user : user.id;
         const userObj = this.getUserFromUserId(userId);
-        userObj.player = new Player(userId, startingLibrary);
+        userObj.player = new Player(teamId, userId, startingLibrary);
         return userObj;
     }
 

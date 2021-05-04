@@ -1,8 +1,9 @@
 import uuid4 from "uuid4";
 import Lobby from "../room/lobby/Lobby";
-import LobbySettings from "../room/lobby/lobbySettings";
 import Player from "../../shared/game/player/Player";
 import GameSettings from "../../shared/game/settings/GameSettings";
+import { User } from "./UserPlayerManager";
+import { ClientLobby } from "../../shared/communication/messageInterfaces/MessageInterfaces";
 
 export default class LobbyManger {
     //{ [lobbyId: string]: Lobby };
@@ -15,11 +16,11 @@ export default class LobbyManger {
         this.usersToLobbyMap = new Map<number, Lobby>();
     }
 
-    getLobbyList(): Lobby[] {
-        return Object.keys(this.lobbyMap).map((key: string) => this.lobbyMap.get(key));
+    getLobbyList(): ClientLobby[] {
+        return Object.keys(this.lobbyMap).map((key: string) => this.lobbyMap.get(key).asClientLobby());
     }
 
-    userCreateLobby(user: Player, settings: GameSettings, presetId?: string): Lobby {
+    userCreateLobby(user: User, settings: GameSettings, presetId?: string): Lobby {
         // disconnect user from any previous lobby they are in
         this.playerDisconnects(user);
         let id = presetId;
@@ -29,18 +30,18 @@ export default class LobbyManger {
             } while (this.lobbyMap.has(id)); // this should basically never happen, but just in case
         }
         const newLobby: Lobby = new Lobby(id, user, settings);
-        this.usersToLobbyMap.set(user.getId(), newLobby);
+        this.usersToLobbyMap.set(user.id, newLobby);
         this.lobbyMap.set(id, newLobby);
         return newLobby;
     }
 
-    userJoinTeamInLobby(user: Player, lobbyId: string, teamId: number): Lobby {
+    userJoinTeamInLobby(user: User, lobbyId: string, teamId: number): Lobby {
         // disconnect user from any previous lobby they are in
         const lobby = this.lobbyMap.get(lobbyId);
         if (lobby) {
             const success = lobby.playerJoinTeam(user, teamId);
             if (success) {
-                this.usersToLobbyMap.set(user.getId(), lobby);
+                this.usersToLobbyMap.set(user.id, lobby);
                 return lobby;
             } else if (lobby.getPlayers().length == 0) {
                 this.deleteLobby(lobby.getId());
@@ -49,8 +50,8 @@ export default class LobbyManger {
         return null;
     }
 
-    playerDisconnects(user: Player): void {
-        const lobby = this.usersToLobbyMap.get(user.getId());
+    playerDisconnects(user: User): void {
+        const lobby = this.usersToLobbyMap.get(user.id);
         if (lobby) {
             lobby.playerLeaveLobby(user);
             if (lobby.getPlayers().length == 0) {
@@ -64,7 +65,7 @@ export default class LobbyManger {
             const lobbyToDel = this.lobbyMap.get(lobbyId);
             this.lobbyMap.delete(lobbyId);
             lobbyToDel.getPlayers().forEach((player) => {
-                this.usersToLobbyMap.delete(player.getId());
+                this.usersToLobbyMap.delete(player.id);
             });
         }
     }

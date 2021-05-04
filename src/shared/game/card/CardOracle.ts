@@ -45,6 +45,16 @@ export default class CardOracle {
     }
 
     private static readonly cardList: { [cardName: string]: Card } = {
+        Hidden: {
+            // This card represents another card for the client side that is hidden to the player. This way clients are not sent data that the user should not know
+            name: "Hidden",
+            cost: emptyCost,
+            ability: doesNothing,
+            activatedAbilities: [],
+            defaultState: {
+                types: [],
+            },
+        },
         Island: {
             name: "Island",
             cost: emptyCost,

@@ -5,7 +5,6 @@ import {
     LoginMessageResponse,
     LoginMessageResponseType,
 } from "../shared/communication/messageInterfaces/loginMessage";
-import LobbySettings from "../server/room/lobby/lobbySettings";
 import {
     ClientLobby,
     CreateLobbyRequest,

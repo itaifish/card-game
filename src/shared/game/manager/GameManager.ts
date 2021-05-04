@@ -22,6 +22,7 @@ import { AbilityKeyword } from "../card/AbilityKeywords";
 import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
 import { emptyPool, isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
 import CardOracle from "../card/CardOracle";
+import Room from "../../../server/room/room";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -37,7 +38,9 @@ interface GameResult {
     drawers: Player[];
 }
 
-export default class GameManager extends EventEmitter {
+export default class GameManager extends EventEmitter implements Room {
+    private readonly roomName: string;
+
     private readonly playerZoneMap: Map<number, PlayerZones>;
 
     private readonly stack: Stack;
@@ -60,8 +63,9 @@ export default class GameManager extends EventEmitter {
 
     private priorityWaitingOn: Player[];
 
-    constructor(gameId: string, server: Server, players: Player[], settings: GameSettings) {
+    constructor(gameId: string, server: Server, players: Player[], settings: GameSettings, roomName: string) {
         super();
+        this.roomName = roomName;
         this.gameId = gameId;
         this.playerZoneMap = new Map<number, PlayerZones>();
         this.playerList = players;
@@ -81,7 +85,7 @@ export default class GameManager extends EventEmitter {
             const newLibrary = new Library(player, copiedLibrary);
             newLibrary.on(GameEvent.DRAW_PAST_DECK, () => {
                 // TODO: Player loses game
-                log(`Player ${player} has drawn past their deck`, this, LOG_LEVEL.INFO);
+                log(`Player ${player.getId()} has drawn past their deck`, this, LOG_LEVEL.INFO);
             });
             newLibrary.on(GameEvent.PLAYER_DRAW, () => {
                 this.emit(GameEvent.PLAYER_DRAW, newLibrary);
@@ -108,6 +112,10 @@ export default class GameManager extends EventEmitter {
                     .forEach((card) => (card.state.tapped = false));
             }
         });
+    }
+
+    getRoomName(): string {
+        return this.roomName;
     }
 
     getAllCardsOnBattlefield(): CardInstance[] {
@@ -319,18 +327,29 @@ export default class GameManager extends EventEmitter {
             const hand = this.playerZoneMap.get(player.getId()).hand;
             const cardRemoved = hand.removeCard(cardId);
             if (cardRemoved) {
-                // Lands do not use the stack
-                if (cardRemoved.state.types.includes(CardType.LAND)) {
-                    this.instantiatePermanent(cardRemoved, player);
-                    player.playerPlayedLand();
-                    log(`Player ${player.getId()} played land: ${cardRemoved.card.name}`, this, LOG_LEVEL.TRACE);
+                const sorcerySpeed = this.getPlayerWhoseTurnItIs().getId() == player.getId() && this.stack.isEmpty();
+                if (cardRemoved.state.types.includes(CardType.INSTANT) || sorcerySpeed) {
+                    // Lands do not use the stack
+                    if (cardRemoved.state.types.includes(CardType.LAND)) {
+                        this.instantiatePermanent(cardRemoved, player);
+                        player.playerPlayedLand();
+                        log(`Player ${player.getId()} played land: ${cardRemoved.card.name}`, this, LOG_LEVEL.TRACE);
+                    } else {
+                        log(
+                            `Player ${player.getId()} putting ${cardRemoved.card.name} on the stack`,
+                            this,
+                            LOG_LEVEL.TRACE,
+                        );
+                        this.stack.push(cardRemoved);
+                    }
                 } else {
                     log(
-                        `Player ${player.getId()} putting ${cardRemoved.card.name} on the stack`,
+                        `Player ${player.getId()} may not play ${
+                            this.cardOracle.getCardInstance(cardId).card.name
+                        } right now because it is not an instant`,
                         this,
-                        LOG_LEVEL.TRACE,
+                        LOG_LEVEL.WARN,
                     );
-                    this.stack.push(cardRemoved);
                 }
             } else {
                 log(
@@ -421,7 +440,7 @@ export default class GameManager extends EventEmitter {
                     const damage = card.state.status?.damage;
                     if (
                         (damage &&
-                            damage > card.state.toughness &&
+                            damage >= card.state.toughness &&
                             !card.state.status.abilities.includes(AbilityKeyword.INDESTRUCTIBLE)) ||
                         card.state.toughness <= 0
                     ) {
@@ -437,20 +456,21 @@ export default class GameManager extends EventEmitter {
      * Please don't  ask
      */
     stringifyGameState(): string {
-        return JSON.stringify(
-            this.playerList.map((player) => {
-                const zones = this.playerZoneMap.get(player.getId());
-                const zoneDataObj: { [zoneName: string]: any } = {};
-                Object.keys(zones).forEach((zone: "graveyard" | "battlefield" | "exile" | "hand" | "library") => {
-                    zoneDataObj[zone] = zones[zone]
-                        .getCards()
-                        .map((card: CardInstance) => simplifyCardForLogging(card));
-                });
-                return {
-                    [player.getId()]: zoneDataObj,
-                };
-            }),
-        );
+        const players = this.playerList.map((player) => {
+            const zones = this.playerZoneMap.get(player.getId());
+            const zoneDataObj: { [zoneName: string]: any } = {};
+            Object.keys(zones).forEach((zone: "graveyard" | "battlefield" | "exile" | "hand" | "library") => {
+                zoneDataObj[zone] = zones[zone].getCards().map((card: CardInstance) => simplifyCardForLogging(card));
+            });
+            return {
+                [player.getId()]: {
+                    ...zoneDataObj,
+                    life: player.getLife(),
+                    mana: stringifyMana(player.getMana()),
+                },
+            };
+        });
+        return JSON.stringify(players);
     }
 
     // TODO: implement canBeRegenerated

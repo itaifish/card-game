@@ -92,6 +92,7 @@ describe("GameIntegrationTest", () => {
                                 gameManager.activateCardAbility(card, 0, emptyPool);
                             });
                             gameManager.playerPayForCard(generateManaPool("WWWWWWWW"), card);
+                            break;
                         } else if (card.state.types.includes(CardType.LAND)) {
                             //log(`Playing card: ${cardToString(card)}`);
                             gameManager.playerPayForCard(emptyPool, card);
@@ -106,5 +107,4 @@ describe("GameIntegrationTest", () => {
         log(`Final Game State: ${gameManager.stringifyGameState()}`);
         server.close();
     });
-    test("testDraw", () => {});
 });
