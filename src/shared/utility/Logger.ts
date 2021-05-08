@@ -10,6 +10,7 @@ export enum LOG_LEVEL {
 }
 
 let globalLogLevel = LOG_LEVEL.DEBUG;
+const logVerbosity = 3;
 
 const setGlobalLogLevel = (level: LOG_LEVEL): void => {
     globalLogLevel = level;
@@ -33,9 +34,19 @@ const log = (message: string, className?: string | unknown, logLevel?: LOG_LEVEL
         name = chalk.blue(className.constructor.name);
     }
     const error = new Error().stack?.split("\n");
-    const previousStack = error[2] ? `\n${chalk.cyan(error[2])}` : "";
+    let previousStack = "";
+    for (let i = 2; i < Math.min(error.length, 2 + logVerbosity); i++) {
+        previousStack += `\n${chalk.cyan(error[i])}`;
+    }
     const coloredLog = logLevel ? colorLogLevel(logLevel) : colorLogLevel(LOG_LEVEL["ANY"]);
-    const output = `${name}.${coloredLog} [${new Date().toLocaleTimeString()}]: ${message}${previousStack}`;
+    const now = new Date();
+    const output = `${name}.${coloredLog} [${chalk.inverse(
+        now.toLocaleTimeString("en-US", {
+            hour12: false,
+        }) +
+            "." +
+            now.getMilliseconds(),
+    )}]: ${message}${previousStack}`;
     console.log(output);
 };
 
