@@ -8,7 +8,7 @@ import uuid4 from "uuid4";
 import GameSettings from "../../../../src/shared/game/settings/GameSettings";
 import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
 import Library from "../../../../src/shared/game/zone/Library";
-import log, { LOG_LEVEL } from "../../../../src/shared/utility/logger";
+import log, { LOG_LEVEL } from "../../../../src/shared/utility/Logger";
 import { Step } from "../../../../src/shared/game/phase/Phase";
 import { emptyPool, generateManaPool, manaValueOf } from "../../../../src/shared/game/mana/Mana";
 
@@ -40,7 +40,7 @@ describe("GameIntegrationTest", () => {
             const cards: CardInstance[] = cardNames
                 .map((cardName) => CardOracle.getCard(cardName))
                 .map((card) => instantiateCard(card, uuid4(), null));
-            const player: Player = new Player(playerId, cards);
+            const player: Player = new Player(playerId, playerId, cards);
             cards.forEach((card) => {
                 card.state.owner = player;
                 card.state.controller = player;
@@ -55,7 +55,7 @@ describe("GameIntegrationTest", () => {
             lobbyName: "Lobby",
             playersPerTeam: 1,
         };
-        const gameManager: GameManager = new GameManager("gameId", server, players, settings);
+        const gameManager: GameManager = new GameManager("gameId", server, players, settings, "Game");
         const dummyUsers = playerIds.map((playerId) => {
             return new DummyUser(playerId, gameManager, players[playerId - 1]);
         });

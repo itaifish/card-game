@@ -1,4 +1,4 @@
-import log, { LOG_LEVEL } from "./logger";
+import log, { LOG_LEVEL } from "./Logger";
 import uuid4 from "uuid4";
 
 export enum GameEvent {

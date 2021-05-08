@@ -4,15 +4,15 @@ import CardInstance, { CardState, copyPile } from "../../../../../src/shared/gam
 import CardOracle from "../../../../../src/shared/game/card/CardOracle";
 import Hand from "../../../../../src/shared/game/zone/Hand";
 import { GameEvent } from "../../../../../src/shared/utility/EventEmitter";
-import log from "../../../../../src/shared/utility/logger";
+import log from "../../../../../src/shared/utility/Logger";
 
 describe("Library", () => {
-    const defaultState: CardState = { id: "", owner: undefined, counters: [], types: [] };
+    const defaultState: CardState = { id: "", owner: undefined, counters: [], types: [], tapped: false };
     const cardNames = ["Island", "Swamp", "Forest", "Mountain", "Plains"];
     const cards: CardInstance[] = cardNames
         .map((cardName) => CardOracle.getCard(cardName))
         .map((card) => ({ card: card, state: defaultState }));
-    const owner = new Player(0, cards);
+    const owner = new Player(0, 0, cards);
     const library = new Library(owner, copyPile(cards));
     test("testShuffle", () => {
         const unShuffledCards: number[] = new Array(cards.length).fill(0);

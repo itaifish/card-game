@@ -2,8 +2,7 @@ import DatabaseReader from "../database/databaseReader";
 import socketio from "socket.io";
 import Player from "../../shared/game/player/Player";
 import CardInstance from "../../shared/game/card/CardInstance";
-import log, { LOG_LEVEL } from "../../shared/utility/logger";
-import { SelectionCriteria } from "../../shared/communication/messageInterfaces/MessageInterfaces";
+import log, { LOG_LEVEL } from "../../shared/utility/Logger";
 import MessageEnum from "../../shared/communication/messageEnum";
 
 export interface User {

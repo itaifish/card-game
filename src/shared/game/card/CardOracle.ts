@@ -1,6 +1,6 @@
 import CardInstance, { ActivatedAbility, Card, CardState, CardType } from "./CardInstance";
 import MathUtility from "../../utility/math";
-import log, { LOG_LEVEL } from "../../utility/logger";
+import log, { LOG_LEVEL } from "../../utility/Logger";
 import ManaCost, { addManaPools, emptyCost, generateManaCost, generateManaPool } from "../mana/Mana";
 import GameManager from "../manager/GameManager";
 

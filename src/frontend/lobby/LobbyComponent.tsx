@@ -1,6 +1,6 @@
 import * as React from "react";
 import { ClientLobby } from "../../shared/communication/messageInterfaces/lobbyMessage";
-import log from "../../shared/utility/logger";
+import log from "../../shared/utility/Logger";
 
 export interface LobbyComponentProps {
     lobby: ClientLobby;

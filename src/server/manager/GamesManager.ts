@@ -1,8 +1,8 @@
 import LobbyManger from "./LobbyManager";
 import Lobby from "../room/lobby/Lobby";
 import UserPlayerManager from "./UserPlayerManager";
-import GameManager from "../../shared/game/manager/gameManager";
-import log, { LOG_LEVEL } from "../../shared/utility/logger";
+import GameManager from "../../shared/game/manager/GameManager";
+import log, { LOG_LEVEL } from "../../shared/utility/Logger";
 import Server from "../Server";
 
 export default class GamesManager extends LobbyManger {

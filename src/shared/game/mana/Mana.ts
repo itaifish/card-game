@@ -1,4 +1,4 @@
-import log, { LOG_LEVEL } from "../../utility/logger";
+import log, { LOG_LEVEL } from "../../utility/Logger";
 
 export type manaPoolTypes = "White" | "Blue" | "Red" | "Green" | "Black" | "Colorless";
 export type manaCostTypes = manaPoolTypes | "Generic";

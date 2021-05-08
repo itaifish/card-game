@@ -15,7 +15,7 @@ import CardInstance, {
 import EventEmitter, { Callback, GameEvent } from "../../utility/EventEmitter";
 import Server from "../../../server/Server";
 import { nextStep, Step, stepToPhase } from "../phase/Phase";
-import log, { LOG_LEVEL } from "../../utility/logger";
+import log, { LOG_LEVEL } from "../../utility/Logger";
 import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
@@ -318,7 +318,7 @@ export default class GameManager extends EventEmitter implements Room {
 
     setPlayerManaPool(player: Player, newManaPool: ManaPool) {
         this.emit(GameEvent.PLAYER_NEW_MANA_POOL, player.getMana, newManaPool);
-        log(`Setting ${player.getId()}'s mana pool to ${stringifyMana(newManaPool)}`);
+        log(`Setting ${player.getId()}'s mana pool to ${stringifyMana(newManaPool)}`, this, LOG_LEVEL.TRACE);
         player.setMana(newManaPool);
     }
 

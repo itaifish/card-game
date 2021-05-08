@@ -5,7 +5,7 @@ import Constants from "../shared/config/Constants";
 import MessageEnum from "../shared/communication/messageEnum";
 import UserPlayerManager from "./manager/UserPlayerManager";
 import LobbyManger from "./manager/LobbyManager";
-import log, { LOG_LEVEL } from "../shared/utility/logger";
+import log, { LOG_LEVEL } from "../shared/utility/Logger";
 import GamesManager from "./manager/GamesManager";
 import Player from "../shared/game/player/Player";
 import {

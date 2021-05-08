@@ -11,7 +11,7 @@ import {
     GetLobbiesResponse,
     JoinLobbyRequest,
 } from "../shared/communication/messageInterfaces/lobbyMessage";
-import log, { LOG_LEVEL } from "../shared/utility/logger";
+import log, { LOG_LEVEL } from "../shared/utility/Logger";
 import Process from "../../process.json";
 import Constants from "../shared/config/Constants";
 import ServerStatsMessage from "../shared/communication/messageInterfaces/serverStatsMessage";

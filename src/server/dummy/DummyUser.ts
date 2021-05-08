@@ -9,7 +9,7 @@ import {
     PleaseChooseTargetsMessage,
 } from "../../shared/communication/messageInterfaces/MessageInterfaces";
 import CardInstance from "../../shared/game/card/CardInstance";
-import log, { LOG_LEVEL } from "../../shared/utility/logger";
+import log, { LOG_LEVEL } from "../../shared/utility/Logger";
 
 export default class DummyUser implements User {
     id: number;
