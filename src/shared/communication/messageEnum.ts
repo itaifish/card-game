@@ -12,6 +12,7 @@ enum MessageEnum {
     GAME_HAS_ENDED = "game over gg wp no re",
     PASSED_PRIORITY = "your go broski",
     CHOOSE_TARGETS = "choose targets",
+    RELAY_GAMESTATE_CHANGE = "change of gamestate",
 }
 
 export default MessageEnum;

@@ -21,6 +21,9 @@ import {
     SelectionCriteria,
 } from "../shared/communication/messageInterfaces/MessageInterfaces";
 import { GameEvent } from "../shared/utility/EventEmitter";
+import GameManager from "../shared/game/manager/GameManager";
+import CardOracle from "../shared/game/card/CardOracle";
+import { instantiateCard } from "../shared/game/card/CardInstance";
 
 export default class Server {
     // Server Variables
@@ -131,7 +134,31 @@ export default class Server {
     }
 
     relayGameStateChange(changes: CardStateDelta[], sourcePlayer: Player) {
-        this.lobbyManager;
+        const gameManager: GameManager = this.gamesManager.playerToGameManager(sourcePlayer.getId());
+        gameManager.getPlayers().forEach((player) => {
+            const playerChanges: CardStateDelta[] = [];
+            changes.forEach((change) => {
+                const card = gameManager.getCardInstance(change.cardId);
+                if (
+                    change.revealTo === "All" ||
+                    (player.getTeam() === sourcePlayer.getTeam() && change.revealTo === "Self") ||
+                    (player.getTeam() !== sourcePlayer.getTeam() && change.revealTo === "Opponent")
+                ) {
+                    change.cardData = card;
+                } else {
+                    const hiddenCard = instantiateCard(
+                        CardOracle.getCard("Hidden"),
+                        change.cardId,
+                        card.state.controller || card.state.owner,
+                    );
+                    change.cardData = hiddenCard;
+                }
+                playerChanges.push(change);
+            });
+            this.userManager
+                .getUserFromUserId(sourcePlayer.getId())
+                .socket.emit(MessageEnum.RELAY_GAMESTATE_CHANGE, playerChanges);
+        });
     }
 
     playerHasPriority(player: Player) {

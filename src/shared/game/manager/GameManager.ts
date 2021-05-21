@@ -114,6 +114,14 @@ export default class GameManager extends EventEmitter implements Room {
         });
     }
 
+    getCardInstance(cardId: string) {
+        return this.cardOracle.getCardInstance(cardId);
+    }
+
+    getPlayers(): Player[] {
+        return this.playerList;
+    }
+
     getRoomName(): string {
         return this.roomName;
     }
