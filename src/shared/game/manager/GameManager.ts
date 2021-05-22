@@ -19,7 +19,7 @@ import log, { LOG_LEVEL } from "../../utility/Logger";
 import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
-import { SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
+import { SelectionCriteria, CardStateDelta } from "../../communication/messageInterfaces/MessageInterfaces";
 import { emptyPool, isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
 import CardOracle from "../card/CardOracle";
 import Room from "../../../server/room/room";
@@ -315,7 +315,18 @@ export default class GameManager extends EventEmitter implements Room {
     playerDrawCard(player: Player, amount = 1) {
         const hand = this.playerZoneMap.get(player.getId()).hand;
         const library = this.playerZoneMap.get(player.getId()).library;
-        library.draw(hand, amount);
+        const drawnCards = library.draw(hand, amount);
+        const changes: CardStateDelta[] = [];
+        drawnCards.forEach((card) => {
+            const change: CardStateDelta = {
+                cardId: card.state.id,
+                revealTo: "All",
+                oldZone: "Library",
+                newZone: "Hand",
+            };
+            changes.push(change);
+        });
+        this.server.relayGameStateChange(changes, player);
     }
 
     setPlayerLife(player: Player, newLife: number) {
@@ -341,6 +352,14 @@ export default class GameManager extends EventEmitter implements Room {
                     if (cardRemoved.state.types.includes(CardType.LAND)) {
                         this.instantiatePermanent(cardRemoved, player);
                         player.playerPlayedLand();
+                        // Send to players
+                        const change: CardStateDelta = {
+                            cardId: cardId,
+                            revealTo: "All",
+                            oldZone: "Hand",
+                            newZone: "Battlefield",
+                        };
+                        this.server.relayGameStateChange([change], player);
                         log(`Player ${player.getId()} played land: ${cardRemoved.card.name}`, this, LOG_LEVEL.TRACE);
                     } else {
                         log(
@@ -349,6 +368,14 @@ export default class GameManager extends EventEmitter implements Room {
                             LOG_LEVEL.TRACE,
                         );
                         this.stack.push(cardRemoved);
+                        // Send to players
+                        const change: CardStateDelta = {
+                            cardId: cardId,
+                            revealTo: "All",
+                            oldZone: "Hand",
+                            newZone: "Stack",
+                        };
+                        this.server.relayGameStateChange([change], player);
                     }
                 } else {
                     log(
@@ -387,9 +414,25 @@ export default class GameManager extends EventEmitter implements Room {
         log(`Resolving card ${card.card.name}`, this, LOG_LEVEL.TRACE);
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
+            // Send to players
+            const change: CardStateDelta = {
+                cardId: card.state.id,
+                revealTo: "All",
+                oldZone: "Stack",
+                newZone: "Battlefield",
+            };
+            this.server.relayGameStateChange([change], card.state.controller || card.state.owner);
         } else {
             card.card.ability(this, card.state);
             this.playerZoneMap.get(card.state.owner.getId()).graveyard.addCard(card);
+            // Send to players
+            const change: CardStateDelta = {
+                cardId: card.state.id,
+                revealTo: "All",
+                oldZone: "Stack",
+                newZone: "Graveyard",
+            };
+            this.server.relayGameStateChange([change], card.state.controller || card.state.owner);
         }
         this.evaluateStateBasedActions();
     }
@@ -484,11 +527,19 @@ export default class GameManager extends EventEmitter implements Room {
     // TODO: implement canBeRegenerated
     creaturesDie(cards: CardInstance[], canBeRegenerated = true) {
         this.emit(GameEvent.PERMANENTS_LEAVE_BATTLEFIELD, cards, "Graveyard");
+        const changes: CardStateDelta[] = [];
         cards.forEach((card) => {
             const owner = card.state.owner;
             const controller = card.state.controller;
             this.playerZoneMap.get(controller.getId()).battlefield.removeCard(card.state.id);
             this.playerZoneMap.get(owner.getId()).graveyard.addCard(card);
+            changes.push({
+                // Send to players
+                cardId: card.state.id,
+                revealTo: "All",
+                oldZone: "Battlefield",
+                newZone: "Graveyard",
+            });
         });
         this.emit(GameEvent.CARDS_ENTER_GRAVEYARD, cards);
     }

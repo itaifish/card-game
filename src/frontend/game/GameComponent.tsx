@@ -1,5 +1,5 @@
 import * as React from "react";
-import Client from "../../client/client";
+import Client from "../../client/Client";
 
 export interface GameComponentProps {
     client: Client;

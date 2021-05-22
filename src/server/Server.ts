@@ -133,7 +133,7 @@ export default class Server {
         this.io.close();
     }
 
-    relayGameStateChange(changes: CardStateDelta[], sourcePlayer: Player) {
+    relayGameStateChange(changes: CardStateDelta[], sourcePlayer: Player): void {
         const gameManager: GameManager = this.gamesManager.playerToGameManager(sourcePlayer.getId());
         gameManager.getPlayers().forEach((player) => {
             const playerChanges: CardStateDelta[] = [];

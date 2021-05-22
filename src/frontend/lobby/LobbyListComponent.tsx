@@ -1,5 +1,5 @@
 import * as React from "react";
-import Client from "../../client/client";
+import Client from "../../client/Client";
 import MessageEnum from "../../shared/communication/messageEnum";
 import LobbyComponent from "./LobbyComponent";
 import { ClientLobby } from "../../shared/communication/messageInterfaces/lobbyMessage";

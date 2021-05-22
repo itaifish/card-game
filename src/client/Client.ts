@@ -1,27 +1,28 @@
 import socketio from "socket.io-client";
 import MessageEnum from "../shared/communication/messageEnum";
 import {
-    LoginMessageRequest,
-    LoginMessageResponse,
-    LoginMessageResponseType,
-} from "../shared/communication/messageInterfaces/loginMessage";
-import {
-    ClientLobby,
+    CardStateDelta,
     CreateLobbyRequest,
     GetLobbiesResponse,
     JoinLobbyRequest,
-} from "../shared/communication/messageInterfaces/lobbyMessage";
+    LoginMessage,
+    LoginMessageResponse,
+    LoginMessageResponseType,
+    PassedTargetsMessage,
+    PleaseChooseTargetsMessage,
+    SelectionCriteria,
+    ClientLobby,
+} from "../shared/communication/messageInterfaces/MessageInterfaces";
 import log, { LOG_LEVEL } from "../shared/utility/Logger";
 import Process from "../../process.json";
 import Constants from "../shared/config/Constants";
-import ServerStatsMessage from "../shared/communication/messageInterfaces/serverStatsMessage";
+import GameSettings from "../shared/game/settings/GameSettings";
+import CardInstance, { Card } from "../shared/game/card/CardInstance";
 
 type callbackFunction = (...args: any[]) => void;
 
 export default class Client {
     loginStatus: LoginMessageResponseType | null;
-
-    userId: number;
 
     gameOverWinner: string;
 
@@ -29,29 +30,27 @@ export default class Client {
 
     socket: SocketIOClient.Socket;
 
-    messageCallbacks: {
+    /**
+     * {
         [key in MessageEnum]: callbackFunction[];
     };
+     */
+    messageCallbacks: Map<MessageEnum, callbackFunction[]>;
 
-    stats: ServerStatsMessage;
+    //stats: ServerStatsMessage;
 
     updateBoardStateCallback: () => void;
 
     constructor() {
         this.loginStatus = null;
-        this.userId = null;
         this.gameOverWinner = null;
-        this.stats = null;
+        //this.stats = null;
         this.lobbyList = [];
         const url = Process?.PROD ? Constants.HOSTED_URL : Constants.URL;
         this.socket = socketio(url);
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        this.messageCallbacks = {};
-        for (const key in MessageEnum) {
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            // @ts-ignore
-            this.messageCallbacks[MessageEnum[key]] = [];
+        this.messageCallbacks = new Map<MessageEnum, callbackFunction[]>();
+        for (const message of Object.values(MessageEnum)) {
+            this.messageCallbacks.set(message, []);
         }
         this.updateBoardStateCallback = () => {
             log("This function should absolutely never be called", this, LOG_LEVEL.WARN);
@@ -71,7 +70,6 @@ export default class Client {
         this.socket.on(MessageEnum.LOGIN, (msg: LoginMessageResponse) => {
             log(`Your login status is now: ${LoginMessageResponseType[msg.status]}`, this, LOG_LEVEL.INFO);
             this.loginStatus = msg.status;
-            this.userId = msg.id;
             this.runAndRemoveCallbacks(MessageEnum.LOGIN);
         });
         this.socket.on(MessageEnum.CREATE_ACCOUNT, (msg: LoginMessageResponse) => {
@@ -89,7 +87,7 @@ export default class Client {
     /** Server Communication **/
 
     createAccount(username: string, password: string, callbackFunc?: callbackFunction): void {
-        const loginData: LoginMessageRequest = {
+        const loginData: LoginMessage = {
             username: username,
             password: password,
         };
@@ -100,27 +98,28 @@ export default class Client {
     }
 
     sendLoginAttempt(username: string, password: string): void {
-        const loginData: LoginMessageRequest = {
+        const loginData: LoginMessage = {
             username: username,
             password: password,
         };
         this.socket.emit(MessageEnum.LOGIN, loginData);
     }
 
-    createLobby(settings: LobbySettings) {
+    createLobby(settings: GameSettings) {
         const createLobbyRequest: CreateLobbyRequest = {
-            lobbySettings: settings,
+            settings: settings,
         };
         this.socket.emit(MessageEnum.CREATE_LOBBY, createLobbyRequest);
     }
 
-    joinLobby(lobbyId: string, teamId: number, callbackFunc?: callbackFunction) {
+    joinLobby(lobbyId: string, teamId: number, startingDeck: CardInstance[], callbackFunc?: callbackFunction) {
         if (callbackFunc) {
             this.addOnServerMessageCallback(MessageEnum.GET_LOBBIES, callbackFunc);
         }
         const joinLobbyRequest: JoinLobbyRequest = {
             lobbyId: lobbyId,
             teamId: teamId,
+            deck: startingDeck,
         };
         this.socket.emit(MessageEnum.JOIN_LOBBY, joinLobbyRequest);
     }
@@ -133,6 +132,7 @@ export default class Client {
         const joinLobbyRequest: JoinLobbyRequest = {
             lobbyId: lobbyId,
             teamId: -1,
+            deck: [],
         };
         this.socket.emit(MessageEnum.JOIN_LOBBY, joinLobbyRequest);
     }
@@ -158,11 +158,11 @@ export default class Client {
     /**************************/
 
     addOnServerMessageCallback(serverMessage: MessageEnum, callbackFunc: callbackFunction): void {
-        this.messageCallbacks[serverMessage].push(callbackFunc);
+        this.messageCallbacks.get(serverMessage).push(callbackFunc);
     }
 
     private runAndRemoveCallbacks(serverMessage: MessageEnum): void {
-        this.messageCallbacks[serverMessage].forEach((callback) => callback());
-        this.messageCallbacks[serverMessage] = [];
+        this.messageCallbacks.get(serverMessage).forEach((callback) => callback());
+        this.messageCallbacks.set(serverMessage, []);
     }
 }

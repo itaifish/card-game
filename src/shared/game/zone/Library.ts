@@ -20,8 +20,12 @@ export default class Library extends NonSharedZone {
             cards[cardToSwapIntoCurrentIdx] = tempCard;
         }
     };
-
-    draw = (hand: Hand, amount = 1): void => {
+    /**
+     * This function draws cards into the player's hand, returning the cards drawn
+     * @param hand - Hand to add cards to
+     * @param amount - Amount of times to draw
+     */
+    draw = (hand: Hand, amount = 1): CardInstance[] => {
         // TODO: Trigger draw replacement effects
         const cards = this.getCards();
         if (amount > this.getSize()) {
@@ -31,5 +35,6 @@ export default class Library extends NonSharedZone {
         const cardsToGoToHand = cards.splice(cards.length - amount);
         hand.addCards(cardsToGoToHand);
         this.emit(GameEvent.PLAYER_DRAW, this.getOwner(), amount);
+        return cardsToGoToHand;
     };
 }

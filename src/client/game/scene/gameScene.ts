@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 
-import Client from "../../client";
+import Client from "../../Client";
 
 export default class GameScene extends Phaser.Scene {
     constructor(client: Client) {

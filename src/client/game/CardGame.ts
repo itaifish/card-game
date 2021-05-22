@@ -1,6 +1,6 @@
 import Phaser from "phaser";
 import GameScene from "./scene/gameScene";
-import Client from "../client";
+import Client from "../Client";
 
 /**
  * Class that represents the Turn-Based Science Fiction Action Real-Time Strategy Game (tbsfarts)

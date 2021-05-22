@@ -1,5 +1,5 @@
 import * as React from "react";
-import Client from "../client/client";
+import Client from "../client/Client";
 import "../../node_modules/bootstrap/dist/css/bootstrap.css";
 import LoginForm from "./login/LoginForm";
 import MessageEnum from "../shared/communication/messageEnum";
