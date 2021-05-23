@@ -1,6 +1,7 @@
 import Phaser from "phaser";
 import GameScene from "./scene/gameScene";
 import Client from "../Client";
+import DeckBuilderScene from "./scene/DeckBuilderScene";
 
 /**
  * Class that represents the Turn-Based Science Fiction Action Real-Time Strategy Game (tbsfarts)
@@ -31,7 +32,8 @@ export default class CardGame extends Phaser.Game {
         this.canvas.oncontextmenu = (e) => {
             e.preventDefault();
         };
-        const gameScene = new GameScene(client);
-        this.scene.add(GameScene.getSceneName(), gameScene, true);
+        //const gameScene = new GameScene(client);
+        const deckBuilderScene = new DeckBuilderScene(client);
+        this.scene.add(DeckBuilderScene.getSceneName(), deckBuilderScene, true);
     }
 }

@@ -1,23 +1,19 @@
 import socketio from "socket.io-client";
 import MessageEnum from "../shared/communication/messageEnum";
 import {
-    CardStateDelta,
+    ClientLobby,
     CreateLobbyRequest,
     GetLobbiesResponse,
     JoinLobbyRequest,
     LoginMessage,
     LoginMessageResponse,
     LoginMessageResponseType,
-    PassedTargetsMessage,
-    PleaseChooseTargetsMessage,
-    SelectionCriteria,
-    ClientLobby,
 } from "../shared/communication/messageInterfaces/MessageInterfaces";
 import log, { LOG_LEVEL } from "../shared/utility/Logger";
 import Process from "../../process.json";
 import Constants from "../shared/config/Constants";
 import GameSettings from "../shared/game/settings/GameSettings";
-import CardInstance, { Card } from "../shared/game/card/CardInstance";
+import CardInstance from "../shared/game/card/CardInstance";
 
 type callbackFunction = (...args: any[]) => void;
 
@@ -85,6 +81,10 @@ export default class Client {
             this.lobbyList = response.lobbies;
             log(`Got ${this.lobbyList.length} lobbies`, this, LOG_LEVEL.INFO);
             this.runAndRemoveCallbacks(MessageEnum.GET_LOBBIES);
+        });
+        this.socket.on(MessageEnum.START_GAME, () => {
+            log(`Starting  game`, this, LOG_LEVEL.TRACE);
+            this.runAndRemoveCallbacks(MessageEnum.START_GAME);
         });
     }
 

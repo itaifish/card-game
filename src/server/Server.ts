@@ -43,7 +43,7 @@ export default class Server {
 
         this.httpServer = new http.Server(this.app);
         const options: ServerOptions = {
-            origins: ["http://localhost:8080"],
+            origins: ["http://localhost:8080", Constants.HOSTED_URL],
         };
         this.io = new socketio(this.httpServer, options);
 
@@ -127,6 +127,15 @@ export default class Server {
                 } else {
                     socket.emit(MessageEnum.GET_LOBBIES, response);
                 }
+            });
+            socket.on(MessageEnum.START_GAME, () => {
+                const user = this.userManager.getUserFromSocketId(socket.id);
+                if (!user) {
+                    return socket.emit(MessageEnum.LOGIN, { status: LoginMessageResponseType.USER_NOT_EXIST });
+                }
+                const usersLobby = this.lobbyManager.userToLobby(user.id);
+                log(`Starting game for room: ${usersLobby.getRoomName()}`, this, LOG_LEVEL.TRACE);
+                this.io.to(usersLobby.getRoomName()).emit(MessageEnum.START_GAME);
             });
         });
 

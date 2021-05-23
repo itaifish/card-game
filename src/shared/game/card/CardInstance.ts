@@ -1,6 +1,6 @@
+import { v4 as uuid4 } from "uuid";
 import { Counter } from "./Counter";
 import Player from "../player/Player";
-import uuid4 from "uuid4";
 import { AbilityKeyword } from "./AbilityKeywords";
 import GameManager from "../manager/GameManager";
 import ManaCost from "../mana/Mana";

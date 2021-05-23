@@ -44,6 +44,10 @@ export default class CardOracle {
         return null;
     }
 
+    public static getAllCardNames(): string[] {
+        return Object.keys(this.cardList);
+    }
+
     private static readonly cardList: { [cardName: string]: Card } = {
         Hidden: {
             // This card represents another card for the client side that is hidden to the player. This way clients are not sent data that the user should not know
