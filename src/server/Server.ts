@@ -1,5 +1,5 @@
 import express from "express";
-import socketio from "socket.io";
+import socketio, { ServerOptions } from "socket.io";
 import http from "http";
 import Constants from "../shared/config/Constants";
 import MessageEnum from "../shared/communication/messageEnum";
@@ -42,7 +42,10 @@ export default class Server {
         this.app.set("port", this.port);
 
         this.httpServer = new http.Server(this.app);
-        this.io = new socketio(this.httpServer);
+        const options: ServerOptions = {
+            origins: ["http://localhost:8080"],
+        };
+        this.io = new socketio(this.httpServer, options);
 
         this.userManager = new UserPlayerManager();
         this.lobbyManager = new LobbyManger();
@@ -87,6 +90,7 @@ export default class Server {
                 const createdLobby = this.lobbyManager.userCreateLobby(user, lobbyRequest.settings);
                 log(`${user.username} has created lobby ${createdLobby.getId()}`, this, LOG_LEVEL.TRACE);
                 // After creating a lobby respond with a list of all lobbies (Should have new lobby)
+                log(`Total Lobbies: ${this.lobbyManager.getLobbyList().length}`, this, LOG_LEVEL.DEBUG);
                 const response: GetLobbiesResponse = { lobbies: this.lobbyManager.getLobbyList() };
                 socket.join(createdLobby.getRoomName());
                 socket.emit(MessageEnum.GET_LOBBIES, response);

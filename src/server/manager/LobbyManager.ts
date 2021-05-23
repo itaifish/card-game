@@ -17,7 +17,11 @@ export default class LobbyManger {
     }
 
     getLobbyList(): ClientLobby[] {
-        return Object.keys(this.lobbyMap).map((key: string) => this.lobbyMap.get(key).asClientLobby());
+        const lobbyList: ClientLobby[] = [];
+        this.lobbyMap.forEach((lobby) => {
+            lobbyList.push(lobby.asClientLobby());
+        });
+        return lobbyList;
     }
 
     userCreateLobby(user: User, settings: GameSettings, presetId?: string): Lobby {

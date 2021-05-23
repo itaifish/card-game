@@ -89,7 +89,7 @@ class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyL
         const startGameJsx = (
             <>
                 {this.props.client?.lobbyList[myLobbyIdx]?.lobbyLeader == this.props.client.userId &&
-                this.props.client?.lobbyList[myLobbyIdx].players.length > 1 ? (
+                this.props.client?.lobbyList[myLobbyIdx]?.players?.length > 1 ? (
                     <button
                         type="button"
                         className="btn btn-success"
