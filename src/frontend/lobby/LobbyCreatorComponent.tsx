@@ -1,13 +1,13 @@
 import * as React from "react";
-import LobbySettings from "../../server/room/lobby/LobbySettings";
+import GameSettings from "../../shared/game/settings/GameSettings";
 
 export interface LobbyCreatorComponentProps {
     username: string;
-    createLobby: (settings: LobbySettings) => void;
+    createLobby: (settings: GameSettings) => void;
 }
 
 export interface LobbyCreatorComponentState {
-    settings: LobbySettings;
+    settings: GameSettings;
 }
 
 class LobbyCreatorComponent extends React.Component<LobbyCreatorComponentProps, LobbyCreatorComponentState> {
@@ -15,10 +15,11 @@ class LobbyCreatorComponent extends React.Component<LobbyCreatorComponentProps, 
         super(props);
         this.state = {
             settings: {
-                maxPlayersPerTeam: 1,
+                startingLife: 20,
+                numPlayers: 2,
+                bannedList: [],
+                playersPerTeam: 1,
                 numTeams: 2,
-                turnTime: 0,
-                mapId: "1",
                 lobbyName: `${this.props.username}'s Lobby`,
             },
         };

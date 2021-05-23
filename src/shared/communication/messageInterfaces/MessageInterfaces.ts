@@ -36,6 +36,7 @@ export enum LoginMessageResponseType {
 
 export interface LoginMessageResponse {
     status: LoginMessageResponseType;
+    userId: number;
 }
 
 export interface ClientUser {

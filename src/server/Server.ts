@@ -68,8 +68,10 @@ export default class Server {
                     : userResult === null
                     ? LoginMessageResponseType.USER_NOT_EXIST
                     : LoginMessageResponseType.PASSWORD_INCORRECT;
+
                 const responseMessage: LoginMessageResponse = {
                     status: status,
+                    userId: typeof userResult == "boolean" ? null : userResult?.id,
                 };
                 socket.emit(MessageEnum.LOGIN, responseMessage);
             });

@@ -37,6 +37,8 @@ export default class Client {
      */
     messageCallbacks: Map<MessageEnum, callbackFunction[]>;
 
+    userId: number;
+
     //stats: ServerStatsMessage;
 
     updateBoardStateCallback: () => void;
@@ -46,6 +48,7 @@ export default class Client {
         this.gameOverWinner = null;
         //this.stats = null;
         this.lobbyList = [];
+        this.userId = null;
         const url = Process?.PROD ? Constants.HOSTED_URL : Constants.URL;
         this.socket = socketio(url);
         this.messageCallbacks = new Map<MessageEnum, callbackFunction[]>();
@@ -70,6 +73,7 @@ export default class Client {
         this.socket.on(MessageEnum.LOGIN, (msg: LoginMessageResponse) => {
             log(`Your login status is now: ${LoginMessageResponseType[msg.status]}`, this, LOG_LEVEL.INFO);
             this.loginStatus = msg.status;
+            this.userId = msg.userId;
             this.runAndRemoveCallbacks(MessageEnum.LOGIN);
         });
         this.socket.on(MessageEnum.CREATE_ACCOUNT, (msg: LoginMessageResponse) => {

@@ -3,10 +3,10 @@ import Client from "../client/Client";
 import "../../node_modules/bootstrap/dist/css/bootstrap.css";
 import LoginForm from "./login/LoginForm";
 import MessageEnum from "../shared/communication/messageEnum";
-import { LoginMessageResponseType } from "../shared/communication/messageInterfaces/loginMessage";
 import CardGame from "../client/game/CardGame";
 import LobbyListComponent from "./lobby/LobbyListComponent";
 import GameComponent from "./game/GameComponent";
+import { LoginMessageResponseType } from "../shared/communication/messageInterfaces/MessageInterfaces";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface FrontendAppComponentProps {}

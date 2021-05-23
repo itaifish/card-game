@@ -2,10 +2,9 @@ import * as React from "react";
 import Client from "../../client/Client";
 import MessageEnum from "../../shared/communication/messageEnum";
 import LobbyComponent from "./LobbyComponent";
-import { ClientLobby } from "../../shared/communication/messageInterfaces/lobbyMessage";
 import LobbyCreatorComponent from "./LobbyCreatorComponent";
-import LobbySettings from "../../server/room/lobby/LobbySettings";
-import ServerStatsMessage from "../../shared/communication/messageInterfaces/serverStatsMessage";
+import { ClientLobby } from "../../shared/communication/messageInterfaces/MessageInterfaces";
+import GameSettings from "../../shared/game/settings/GameSettings";
 
 export interface LobbyListComponentProps {
     client: Client;
@@ -15,7 +14,6 @@ export interface LobbyListComponentProps {
 
 export interface LobbyListComponentState {
     lobbyList: ClientLobby[];
-    stats: ServerStatsMessage;
 }
 
 class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyListComponentState> {
@@ -24,7 +22,6 @@ class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyL
         super(props);
         this.state = {
             lobbyList: [],
-            stats: null,
         };
         this.reloadLobbyListAndStats = this.reloadLobbyListAndStats.bind(this);
         this.lobbyButton = this.lobbyButton.bind(this);
@@ -41,7 +38,7 @@ class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyL
         this.setState({ lobbyList: this.props.client.lobbyList });
     }
 
-    createLobby(settings: LobbySettings) {
+    createLobby(settings: GameSettings) {
         this.props.client.createLobby(settings);
         this.props.client.addOnServerMessageCallback(MessageEnum.GET_LOBBIES, this.reloadState);
     }
@@ -65,7 +62,7 @@ class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyL
                 return Object.keys(lobby.playerTeamMap[teamIdNumber]).length == 0;
             }),
         );
-        this.props.client.joinLobby(lobby.id, emptyTeam || 0, this.reloadState);
+        this.props.client.joinLobby(lobby.id, emptyTeam || 0, [], this.reloadState);
     }
 
     render() {
@@ -119,19 +116,19 @@ class LobbyListComponent extends React.Component<LobbyListComponentProps, LobbyL
                 />,
             );
         });
-        const statsJsx = this.state.stats ? (
-            <div className="col">
-                <div className="alert alert-success" role="alert" style={{ backgroundColor: "white" }}>
-                    Welcome, {this.state.stats.username}! There are currently {this.state.stats.numberOfLobbies} lobbies
-                    available and {this.state.stats.numberOfGames} games being played
-                </div>
-            </div>
-        ) : (
-            <></>
-        );
+        // const statsJsx = this.state.stats ? (
+        //     <div className="col">
+        //         <div className="alert alert-success" role="alert" style={{ backgroundColor: "white" }}>
+        //             Welcome, {this.state.stats.username}! There are currently {this.state.stats.numberOfLobbies} lobbies
+        //             available and {this.state.stats.numberOfGames} games being played
+        //         </div>
+        //     </div>
+        // ) : (
+        //     <></>
+        // );
         return (
             <>
-                {statsJsx}
+                {/*statsJsx*/}
                 {buttonJSX}
                 {startGameJsx}
                 <table className="table table-bordered table-hover">
