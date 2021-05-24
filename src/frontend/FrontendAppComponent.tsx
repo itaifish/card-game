@@ -74,6 +74,11 @@ class FrontendAppComponent extends React.Component<FrontendAppComponentProps, Fr
         this.setState({ game: new CardGame(this.state.client) });
     }
 
+    componentDidMount() {
+        //TESTING
+        this.gameHasLoaded();
+    }
+
     render(): JSX.Element {
         const loginJSX = (
             <div className="col-6 text-center" style={{ backgroundColor: "white" }}>
@@ -86,6 +91,8 @@ class FrontendAppComponent extends React.Component<FrontendAppComponentProps, Fr
             </div>
         );
         return (
+            <GameComponent client={this.state.client} />
+            /*
             <div className="container-fluid">
                 <div className="row justify-content-center">
                     {!this.state.username ? (
@@ -103,7 +110,7 @@ class FrontendAppComponent extends React.Component<FrontendAppComponentProps, Fr
                         <GameComponent client={this.state.client} />
                     )}
                 </div>
-            </div>
+            </div> */
         );
     }
 }
