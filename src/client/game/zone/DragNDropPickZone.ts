@@ -11,6 +11,7 @@ export default class DragNDropPickZone extends Phaser.GameObjects.Zone {
         outlineGraphics.lineStyle(4, 0xff69bf);
         outlineGraphics.strokeRect(x, y, width, height);
         scene.add.existing(this);
+        this.setRectangleDropZone(width, height);
         CardOracle.getAllCardNames().forEach((cardName, index) => {
             const card = new DragNDropCard(scene, 50, 50, cardName);
             card.setX(x + card.displayWidth * (index + 1));

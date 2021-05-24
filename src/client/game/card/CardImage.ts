@@ -44,7 +44,6 @@ export default class CardImage extends Phaser.GameObjects.Image {
 
     update(...args: any) {
         super.update(...args);
-        log("Following Pointer", this, LOG_LEVEL.TRACE);
         if (this.followPointer) {
             this.setX(this.scene.input.activePointer.x);
             this.setY(this.scene.input.activePointer.y);

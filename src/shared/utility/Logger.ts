@@ -9,7 +9,7 @@ export enum LOG_LEVEL {
     "ERROR",
 }
 
-let globalLogLevel = LOG_LEVEL.TRACE;
+let globalLogLevel = LOG_LEVEL.DEBUG;
 const logVerbosity = 3;
 
 const setGlobalLogLevel = (level: LOG_LEVEL): void => {
