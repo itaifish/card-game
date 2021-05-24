@@ -28,12 +28,7 @@ export default class DeckBuilderScene extends Phaser.Scene {
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
             log("MOUSEDOWN");
         });
-        CardOracle.getAllCardNames().forEach((cardName, index) => {
-            const card = new CardImage(this, 50, 50, cardName);
-            card.setX(card.displayWidth * (index + 1));
-            card.setY(card.displayHeight / 2);
-        });
-        const pickFromZone = new DragNDropPickZone(this, 0, 0, this.game.canvas.width, 200);
+        const pickFromZone = new DragNDropPickZone(this, 2, 2, this.game.canvas.width - 4, 200);
         this.input.on("dragstart", (pointer: Phaser.Input.Pointer, gameObject: CardImage) => {
             gameObject.setTint(0xff69b4);
         });
