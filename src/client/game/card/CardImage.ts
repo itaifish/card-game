@@ -2,6 +2,7 @@ import Phaser from "phaser";
 import log, { LOG_LEVEL } from "../../../shared/utility/Logger";
 import { v4 as uuid4 } from "uuid";
 import DeckBuilderScene from "../scene/DeckBuilderScene";
+import Constants from "../../../shared/config/Constants";
 
 export default class CardImage extends Phaser.GameObjects.Image {
     readonly cardName: string;
@@ -21,7 +22,7 @@ export default class CardImage extends Phaser.GameObjects.Image {
         this.id = uuid4();
         this.followPointer = false;
         // TODO: Set these as constants
-        this.setScale(134.4 / this.width, 187.2 / this.height);
+        this.setScale(Constants.CARD_SIZE.WIDTH / this.width, Constants.CARD_SIZE.HEIGHT / this.height);
 
         this.setInteractive();
         scene.input.setDraggable(this);

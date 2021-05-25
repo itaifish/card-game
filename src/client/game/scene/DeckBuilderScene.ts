@@ -6,6 +6,7 @@ import CardImage from "../card/CardImage";
 import log, { LOG_LEVEL } from "../../../shared/utility/Logger";
 import DragNDropPickZone from "../zone/DragNDropPickZone";
 import CardGame from "../CardGame";
+import DeckDropZone from "../zone/DeckDropZone";
 
 export default class DeckBuilderScene extends Phaser.Scene {
     instanceUpdatePool: Map<string, Phaser.GameObjects.GameObject>;
@@ -29,6 +30,13 @@ export default class DeckBuilderScene extends Phaser.Scene {
             log("MOUSEDOWN");
         });
         const pickFromZone = new DragNDropPickZone(this, 2, 2, this.game.canvas.width - 4, 200);
+        const deckDropZone = new DeckDropZone(
+            this,
+            2,
+            208,
+            this.game.canvas.width - 4,
+            this.game.canvas.height - 4 - 208,
+        );
         this.input.on("dragstart", (pointer: Phaser.Input.Pointer, gameObject: CardImage) => {
             gameObject.setTint(0xff69b4);
         });
@@ -45,8 +53,12 @@ export default class DeckBuilderScene extends Phaser.Scene {
             ) => {
                 log(`dropping gameobject ${gameObject}`, this, LOG_LEVEL.DEBUG);
                 if (gameObject instanceof CardImage) {
-                    this.instanceUpdatePool.delete(gameObject.id);
-                    gameObject.destroy();
+                    if (dropZone instanceof DragNDropPickZone) {
+                        this.instanceUpdatePool.delete(gameObject.id);
+                        gameObject.destroy();
+                    } else if (dropZone instanceof DeckDropZone) {
+                        dropZone.cardDrop(gameObject);
+                    }
                 }
             },
         );
