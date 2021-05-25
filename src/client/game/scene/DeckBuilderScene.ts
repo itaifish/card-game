@@ -11,6 +11,8 @@ import DeckDropZone from "../zone/DeckDropZone";
 export default class DeckBuilderScene extends Phaser.Scene {
     instanceUpdatePool: Map<string, Phaser.GameObjects.GameObject>;
 
+    deckDropZone: DeckDropZone;
+
     constructor(client: Client) {
         const config: Phaser.Types.Scenes.SettingsConfig = {
             active: true,
@@ -30,7 +32,7 @@ export default class DeckBuilderScene extends Phaser.Scene {
             log("MOUSEDOWN");
         });
         const pickFromZone = new DragNDropPickZone(this, 2, 2, this.game.canvas.width - 4, 200);
-        const deckDropZone = new DeckDropZone(
+        this.deckDropZone = new DeckDropZone(
             this,
             2,
             208,
@@ -55,6 +57,7 @@ export default class DeckBuilderScene extends Phaser.Scene {
                 if (gameObject instanceof CardImage) {
                     if (dropZone instanceof DragNDropPickZone) {
                         this.instanceUpdatePool.delete(gameObject.id);
+                        this.deckDropZone?.removeCardFromColumns(gameObject);
                         gameObject.destroy();
                     } else if (dropZone instanceof DeckDropZone) {
                         dropZone.cardDrop(gameObject);

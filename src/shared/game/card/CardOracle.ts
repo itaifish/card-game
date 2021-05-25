@@ -43,9 +43,12 @@ export default class CardOracle {
         log(`Unable to find card for name ${cardName}`, this, LOG_LEVEL.WARN);
         return null;
     }
-
+    /**
+     * This function grabs the names of all the cards except for "Hidden" which is not a real card
+     * @returns string[]
+     */
     public static getAllCardNames(): string[] {
-        return Object.keys(this.cardList);
+        return Object.keys(this.cardList).filter((name) => name != "Hidden");
     }
 
     private static readonly cardList: { [cardName: string]: Card } = {

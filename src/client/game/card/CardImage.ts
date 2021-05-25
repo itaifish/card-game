@@ -40,6 +40,7 @@ export default class CardImage extends Phaser.GameObjects.Image {
         this.once("pointerup", () => {
             this.followPointer = false;
             this.deckBuilderScene.instanceUpdatePool.delete(this.id);
+            this.deckBuilderScene.input.emit("drop", null, this, this.deckBuilderScene.deckDropZone);
         });
     }
 
