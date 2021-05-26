@@ -13,6 +13,7 @@ export enum CardType {
     PLANESWALKER,
     ENCHANTMENT,
     ARTIFACT,
+    LEGENDARY,
 }
 
 export interface CardStatus {
@@ -24,6 +25,7 @@ export interface CardStatus {
 export interface CardState {
     counters: Counter[];
     types: CardType[];
+    subTypes: string[];
     owner: Player;
     id: string;
     tapped: boolean;
@@ -57,6 +59,7 @@ export interface Card {
         power?: number;
         toughness?: number;
         types: CardType[];
+        subTypes?: string[];
     };
 }
 
@@ -70,6 +73,7 @@ export const instantiateCard = (card: Card, id: string, owner?: Player | null): 
             counters: [],
             tapped: false,
             ...card.defaultState,
+            subTypes: card.defaultState.subTypes || [],
         },
     };
 };
@@ -82,6 +86,7 @@ export const copyInstance = (cardToCopy: CardInstance, preserveState = false): C
         owner: cardToCopy.state.owner,
         id: preserveState ? cardToCopy.state.id : uuid4(),
         tapped: preserveState ? cardToCopy.state.tapped : false,
+        subTypes: preserveState ? cardToCopy.state.subTypes : cardToCopy.card.defaultState.subTypes || [],
         status: preserveState
             ? {
                   damage: cardToCopy.state.status?.damage,

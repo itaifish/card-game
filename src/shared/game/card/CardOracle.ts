@@ -3,14 +3,18 @@ import MathUtility from "../../utility/math";
 import log, { LOG_LEVEL } from "../../utility/Logger";
 import ManaCost, { addManaPools, emptyCost, generateManaCost, generateManaPool } from "../mana/Mana";
 import GameManager from "../manager/GameManager";
+import collegeBoysCardList from "./sets/clg/CollegeBoysSet";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const doesNothing = () => {};
-const landState = {
-    types: [CardType.LAND],
+const landState = (...subTypes: string[]) => {
+    return {
+        types: [CardType.LAND],
+        subTypes: subTypes,
+    };
 };
 
-const addManaAbility = (manaToAdd: string): ActivatedAbility => {
+export const addManaAbility = (manaToAdd: string): ActivatedAbility => {
     return {
         cost: {
             tap: true,
@@ -67,63 +71,36 @@ export default class CardOracle {
             cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("U")],
-            defaultState: landState,
+            defaultState: landState("Basic", "Island"),
         },
         Forest: {
             name: "Forest",
             cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("G")],
-            defaultState: landState,
+            defaultState: landState("Basic", "Forest"),
         },
         Swamp: {
             name: "Swamp",
             cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("B")],
-            defaultState: landState,
+            defaultState: landState("Basic", "Swamp"),
         },
         Plains: {
             name: "Plains",
             cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("W")],
-            defaultState: landState,
+            defaultState: landState("Basic", "Plains"),
         },
         Mountain: {
             name: "Mountain",
             cost: emptyCost,
             ability: doesNothing,
             activatedAbilities: [addManaAbility("R")],
-            defaultState: landState,
+            defaultState: landState("Basic", "Mountain"),
         },
-        "Spencer's Favorite Card": {
-            name: "Spencer's Favorite Card",
-            cost: generateManaCost("WWW5"),
-            ability: (gameManager, state) => {
-                const caster = state.controller || state.owner;
-                gameManager.setPlayerLife(caster, caster.getLife() + 25);
-            },
-            activatedAbilities: [],
-            defaultState: {
-                types: [CardType.SORCERY],
-            },
-        },
-        "Itai Has a Crush on a Girl": {
-            name: "Itai Has a Crush on a Girl",
-            cost: generateManaCost("U"),
-            ability: (gameManager, state) => {
-                const caster = state.controller;
-                if (MathUtility.randomIntegerInclusive(1, 20) == 20) {
-                    //TODO: Game winning
-                    log("The player wins the game", CardOracle.constructor.name, LOG_LEVEL.INFO);
-                }
-                gameManager.playerDrawCard(caster);
-            },
-            activatedAbilities: [],
-            defaultState: {
-                types: [CardType.INSTANT],
-            },
-        },
+        ...collegeBoysCardList,
     };
 }

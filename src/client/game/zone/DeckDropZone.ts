@@ -52,8 +52,10 @@ export default class DeckDropZone extends Phaser.GameObjects.Zone {
     positionCardInColumn(card: CardImage, columnIndex: number, index: number) {
         const thisX = this.x - this.width / 2;
         const thisY = this.y - this.height / 2;
-        card.setX(thisX + DeckDropZone.OFFSET + DeckDropZone.COLUMN_WIDTH * columnIndex);
-        card.setY(thisY + card.displayHeight / 2 + index * DeckDropZone.HEIGHT_OFFSET);
+        card.setX(
+            thisX + DeckDropZone.OFFSET + DeckDropZone.COLUMN_WIDTH / 2 + DeckDropZone.COLUMN_WIDTH * columnIndex,
+        );
+        card.setY(thisY + card.displayHeight / 2 + (index + 1) * DeckDropZone.HEIGHT_OFFSET);
     }
 
     removeCardFromColumns(card: CardImage): void {
