@@ -1,5 +1,5 @@
 import log, { LOG_LEVEL } from "./Logger";
-import uuid4 from "uuid4";
+import { v4 as uuid4 } from "uuid";
 
 export enum GameEvent {
     PLAYER_DRAW,

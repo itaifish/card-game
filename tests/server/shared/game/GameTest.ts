@@ -4,7 +4,7 @@ import Player from "../../../../src/shared/game/player/Player";
 import DummyUser from "../../../../src/server/dummy/DummyUser";
 import CardInstance, { cardToString, CardType, instantiateCard } from "../../../../src/shared/game/card/CardInstance";
 import CardOracle from "../../../../src/shared/game/card/CardOracle";
-import uuid4 from "uuid4";
+import { v4 as uuid4 } from "uuid";
 import GameSettings from "../../../../src/shared/game/settings/GameSettings";
 import { GameEvent } from "../../../../src/shared/utility/EventEmitter";
 import Library from "../../../../src/shared/game/zone/Library";

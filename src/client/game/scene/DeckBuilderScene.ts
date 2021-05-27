@@ -7,6 +7,7 @@ import log, { LOG_LEVEL } from "../../../shared/utility/Logger";
 import DragNDropPickZone from "../zone/DragNDropPickZone";
 import CardGame from "../CardGame";
 import DeckDropZone from "../zone/DeckDropZone";
+import Constants from "../../../shared/config/Constants";
 
 export default class DeckBuilderScene extends Phaser.Scene {
     instanceUpdatePool: Map<string, Phaser.GameObjects.GameObject>;
@@ -31,11 +32,17 @@ export default class DeckBuilderScene extends Phaser.Scene {
         this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
             log("MOUSEDOWN");
         });
-        const pickFromZone = new DragNDropPickZone(this, 2, 2, this.game.canvas.width - 4, 200);
+        const pickFromZone = new DragNDropPickZone(
+            this,
+            2,
+            2,
+            this.game.canvas.width - 4,
+            Constants.CARD_SIZE.HEIGHT + 20,
+        );
         this.deckDropZone = new DeckDropZone(
             this,
             2,
-            208,
+            pickFromZone.height + 8,
             this.game.canvas.width - 4,
             this.game.canvas.height - 4 - 208,
         );

@@ -350,6 +350,7 @@ export default class GameManager extends EventEmitter implements Room {
                 if (cardRemoved.state.types.includes(CardType.INSTANT) || sorcerySpeed) {
                     // Lands do not use the stack
                     if (cardRemoved.state.types.includes(CardType.LAND)) {
+                        cardRemoved.card.ability(this, cardRemoved.state);
                         this.instantiatePermanent(cardRemoved, player);
                         player.playerPlayedLand();
                         // Send to players
@@ -412,6 +413,7 @@ export default class GameManager extends EventEmitter implements Room {
 
     resolveCard(card: CardInstance) {
         log(`Resolving card ${card.card.name}`, this, LOG_LEVEL.TRACE);
+        card.card.ability(this, card.state);
         if (isPermanent(card)) {
             this.instantiatePermanent(card);
             // Send to players
@@ -423,7 +425,6 @@ export default class GameManager extends EventEmitter implements Room {
             };
             this.server.relayGameStateChange([change], card.state.controller || card.state.owner);
         } else {
-            card.card.ability(this, card.state);
             this.playerZoneMap.get(card.state.owner.getId()).graveyard.addCard(card);
             // Send to players
             const change: CardStateDelta = {

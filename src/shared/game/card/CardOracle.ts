@@ -14,7 +14,7 @@ const landState = (...subTypes: string[]) => {
     };
 };
 
-export const addManaAbility = (manaToAdd: string): ActivatedAbility => {
+export function addManaAbility(manaToAdd: string): ActivatedAbility {
     return {
         cost: {
             tap: true,

@@ -1,4 +1,4 @@
-import uuid4 from "uuid4";
+import { v4 as uuid4 } from "uuid";
 import Lobby from "../room/lobby/Lobby";
 import Player from "../../shared/game/player/Player";
 import GameSettings from "../../shared/game/settings/GameSettings";

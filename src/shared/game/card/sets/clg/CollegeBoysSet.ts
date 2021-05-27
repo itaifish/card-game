@@ -1,7 +1,8 @@
+import { GameEvent } from "../../../../../shared/utility/EventEmitter";
 import { emptyCost, generateManaCost } from "../../../../../shared/game/mana/Mana";
 import log, { LOG_LEVEL } from "../../../../../shared/utility/Logger";
 import MathUtility from "../../../../../shared/utility/math";
-import { Card, CardType } from "../../CardInstance";
+import CardInstance, { Card, CardType } from "../../CardInstance";
 import CardOracle, { addManaAbility } from "../../CardOracle";
 
 const collegeBoysCardList: { [cardName: string]: Card } = {
@@ -38,11 +39,37 @@ const collegeBoysCardList: { [cardName: string]: Card } = {
         cost: emptyCost,
         ability: (gameManager, state) => {
             const caster = state.controller;
+            const tapEvent = gameManager.on(GameEvent.PERMANENTS_ENTER_BATTLEFIELD, (cards: CardInstance[]) => {
+                const self = cards.find((card) => card.state.id == state.id);
+                if (self && gameManager.getPlayerZoneMap().get(caster.getId()).hand.getSize() > 3) {
+                    self.state.tapped = true;
+                }
+                gameManager.clearEvent(tapEvent);
+            });
         },
         activatedAbilities: [addManaAbility("B"), addManaAbility("R")],
         defaultState: {
             types: [CardType.LAND],
             subTypes: ["Swamp", "Mountain"],
+        },
+    },
+    "Planet Fitness": {
+        name: "Planet Fitness",
+        cost: emptyCost,
+        ability: (gameManager, state) => {
+            const caster = state.controller;
+            const tapEvent = gameManager.on(GameEvent.PERMANENTS_ENTER_BATTLEFIELD, (cards: CardInstance[]) => {
+                const self = cards.find((card) => card.state.id == state.id);
+                if (self && gameManager.getPlayerZoneMap().get(caster.getId()).hand.getSize() > 3) {
+                    self.state.tapped = true;
+                }
+                gameManager.clearEvent(tapEvent);
+            });
+        },
+        activatedAbilities: [addManaAbility("W"), addManaAbility("R")],
+        defaultState: {
+            types: [CardType.LAND],
+            subTypes: ["Plains", "Mountain"],
         },
     },
 };
