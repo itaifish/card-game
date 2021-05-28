@@ -53,7 +53,7 @@ export default class DeckDropZone extends Phaser.GameObjects.Zone {
         const thisX = this.x - this.width / 2;
         const thisY = this.y - this.height / 2;
         card.setX(
-            thisX + DeckDropZone.OFFSET + DeckDropZone.COLUMN_WIDTH / 2 + DeckDropZone.COLUMN_WIDTH * columnIndex,
+            thisX + DeckDropZone.OFFSET + DeckDropZone.COLUMN_WIDTH / 3 + DeckDropZone.COLUMN_WIDTH * columnIndex,
         );
         card.setY(thisY + card.displayHeight / 2 + (index + 1) * DeckDropZone.HEIGHT_OFFSET);
     }
