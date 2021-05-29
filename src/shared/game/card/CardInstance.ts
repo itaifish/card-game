@@ -4,6 +4,7 @@ import Player from "../player/Player";
 import { AbilityKeyword } from "./AbilityKeywords";
 import GameManager from "../manager/GameManager";
 import ManaCost from "../mana/Mana";
+import Ability from "../ability/Ability";
 
 export enum CardType {
     INSTANT,
@@ -108,6 +109,9 @@ export const copyPile = (pileToCopy: CardInstance[], preserveState = false): Car
 };
 
 export const isPermanent = (cardInstance: CardInstance): boolean => {
+    if (cardInstance instanceof Ability) {
+        return false;
+    }
     const types = cardInstance.state.types;
     const typeExists: CardType = types.find((type) => {
         return (

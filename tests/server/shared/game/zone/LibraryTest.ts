@@ -7,7 +7,7 @@ import { GameEvent } from "../../../../../src/shared/utility/EventEmitter";
 import log from "../../../../../src/shared/utility/Logger";
 
 describe("Library", () => {
-    const defaultState: CardState = { id: "", owner: undefined, counters: [], types: [], tapped: false };
+    const defaultState: CardState = { id: "", owner: undefined, counters: [], types: [], subTypes: [], tapped: false };
     const cardNames = ["Island", "Swamp", "Forest", "Mountain", "Plains"];
     const cards: CardInstance[] = cardNames
         .map((cardName) => CardOracle.getCard(cardName))

@@ -4,11 +4,12 @@ import CardImage from "./CardImage";
 import DeckBuilderScene from "../scene/DeckBuilderScene";
 import DragNDropPickZone from "../zone/DragNDropPickZone";
 import Constants from "../../../shared/config/Constants";
+import MathUtility from "../../../shared/utility/math";
 
 export default class DragNDropCard extends Phaser.GameObjects.Image {
     readonly cardName: string;
 
-    constructor(scene: DeckBuilderScene, x: number, y: number, cardName: string) {
+    constructor(scene: DeckBuilderScene, x: number, y: number, cardName: string, pickZone: DragNDropPickZone) {
         super(scene, x, y, cardName);
         this.cardName = cardName;
         scene.add.existing(this);
@@ -20,5 +21,17 @@ export default class DragNDropCard extends Phaser.GameObjects.Image {
             scene.instanceUpdatePool.set(newCard.id, newCard);
             newCard.followUntilClick();
         });
+        this.on(
+            "wheel",
+            (
+                pointer: Phaser.Input.Pointer,
+                deltaX: number,
+                deltaY: number,
+                deltaZ: number,
+                event: Phaser.Types.Input.EventData,
+            ) => {
+                pickZone.emit("wheel", pointer, deltaX, deltaY, deltaZ, event);
+            },
+        );
     }
 }

@@ -13,13 +13,13 @@ export default class CardImage extends Phaser.GameObjects.Image {
 
     private readonly deckBuilderScene: DeckBuilderScene;
 
-    constructor(scene: DeckBuilderScene, x: number, y: number, cardName: string) {
+    constructor(scene: DeckBuilderScene, x: number, y: number, cardName: string, id?: string) {
         super(scene, x, y, cardName);
         this.cardName = cardName;
         scene.add.existing(this);
         this.scene = scene;
         this.deckBuilderScene = scene;
-        this.id = uuid4();
+        this.id = id ? id : uuid4();
         this.followPointer = false;
         // TODO: Set these as constants
         this.setScale(Constants.CARD_SIZE.WIDTH / this.width, Constants.CARD_SIZE.HEIGHT / this.height);
@@ -47,8 +47,12 @@ export default class CardImage extends Phaser.GameObjects.Image {
     update(...args: any) {
         super.update(...args);
         if (this.followPointer) {
-            this.setX(this.scene.input.activePointer.x);
-            this.setY(this.scene.input.activePointer.y);
+            this.setX(this.scene?.input.activePointer.worldX);
+            this.setY(this.scene?.input.activePointer.worldY);
         }
+    }
+
+    getId(): string {
+        return this.id;
     }
 }

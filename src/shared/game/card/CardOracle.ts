@@ -4,6 +4,7 @@ import log, { LOG_LEVEL } from "../../utility/Logger";
 import ManaCost, { addManaPools, emptyCost, generateManaCost, generateManaPool } from "../mana/Mana";
 import GameManager from "../manager/GameManager";
 import collegeBoysCardList from "./sets/clg/CollegeBoysSet";
+import { addManaAbility } from "../ability/Ability";
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const doesNothing = () => {};
@@ -11,19 +12,6 @@ const landState = (...subTypes: string[]) => {
     return {
         types: [CardType.LAND],
         subTypes: subTypes,
-    };
-};
-
-export function addManaAbility(manaToAdd: string): ActivatedAbility {
-    return {
-        cost: {
-            tap: true,
-            manaCost: emptyCost,
-        },
-        ability: (gameManager: GameManager, state: CardState) => {
-            const player = state.controller || state.owner;
-            gameManager.setPlayerManaPool(player, addManaPools(player.getMana(), generateManaPool(manaToAdd)));
-        },
     };
 };
 

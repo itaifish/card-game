@@ -19,10 +19,11 @@ import log, { LOG_LEVEL } from "../../utility/Logger";
 import Battlefield from "../zone/Battlefield";
 import GameSettings from "../settings/GameSettings";
 import { AbilityKeyword } from "../card/AbilityKeywords";
-import { SelectionCriteria, CardStateDelta } from "../../communication/messageInterfaces/MessageInterfaces";
+import { CardStateDelta, SelectionCriteria } from "../../communication/messageInterfaces/MessageInterfaces";
 import { emptyPool, isEmpty, ManaPool, stringifyMana, subtractCostFromManaPool } from "../mana/Mana";
 import CardOracle from "../card/CardOracle";
 import Room from "../../../server/room/room";
+import Ability from "../ability/Ability";
 
 interface PlayerZones {
     graveyard: Graveyard;
@@ -398,6 +399,26 @@ export default class GameManager extends EventEmitter implements Room {
             log(`Player ${player.getId()} tried to play a card when it wasn't their turn`, this, LOG_LEVEL.WARN);
         }
         this.evaluateStateBasedActions();
+    }
+
+    addAbilityToStack(ability: Ability) {
+        this.stack.push(ability);
+    }
+
+    loadCardsTriggeredAbility(cardId: string, triggerEvent: GameEvent, ability: (...args: any[]) => boolean) {
+        const eventId = this.on(triggerEvent, (...args) => {
+            const done: boolean = ability(args);
+            if (done) {
+                this.clearEvent(eventId);
+            }
+        });
+        const leaveEventId = this.on(GameEvent.PERMANENTS_LEAVE_BATTLEFIELD, (cards: CardInstance[]) => {
+            const self = cards.find((card) => card.state.id == cardId);
+            if (self) {
+                this.clearEvent(eventId);
+                this.clearEvent(leaveEventId);
+            }
+        });
     }
 
     private instantiatePermanent(card: CardInstance, controller?: Player): void {
