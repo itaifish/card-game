@@ -93,7 +93,7 @@ export default class DeckDropZone extends Phaser.GameObjects.Zone {
                 (card.x - DeckDropZone.OFFSET - thisX - DeckDropZone.COLUMN_WIDTH / 3) / DeckDropZone.COLUMN_WIDTH,
             ),
         );
-        while (this.columns[columnIndex]?.size > DeckDropZone.MAX_CARDS_IN_COLUMN) {
+        while (this.columns[columnIndex]?.size >= DeckDropZone.MAX_CARDS_IN_COLUMN) {
             columnIndex++;
         }
         if (columnIndex >= this.columns.length) {
