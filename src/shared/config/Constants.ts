@@ -1,5 +1,4 @@
 export default class Constants {
-
     /**
      * Server Constants
      */
@@ -17,5 +16,5 @@ export default class Constants {
     static readonly CARD_SIZE = {
         WIDTH: 134.4 * 1.4,
         HEIGHT: 187.2 * 1.4,
-    }
+    };
 }

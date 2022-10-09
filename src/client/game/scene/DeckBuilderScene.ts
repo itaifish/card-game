@@ -7,8 +7,16 @@ import log, { LOG_LEVEL } from "../../../shared/utility/Logger";
 import DragNDropPickZone from "../zone/DragNDropPickZone";
 import DeckDropZone from "../zone/DeckDropZone";
 import Constants from "../../../shared/config/Constants";
-import MathUtility from "../../../shared/utility/math";
 
+function importAll(r: __WebpackModuleApi.RequireContext) {
+    const images: Record<string, string> = {};
+    r.keys().map((item, _index) => {
+        images[item.replace("./", "")] = r(item).default;
+    });
+    return images;
+}
+
+const images = importAll(require.context("../../../client/resources/images", false, /\.(png|jpe?g|svg)$/));
 export default class DeckBuilderScene extends Phaser.Scene {
     instanceUpdatePool: Map<string, Phaser.GameObjects.GameObject>;
 
@@ -24,7 +32,7 @@ export default class DeckBuilderScene extends Phaser.Scene {
 
     preload() {
         CardOracle.getAllCardNames().forEach((cardName) => {
-            this.load.image(cardName, `src/client/resources/images/${cardName}.jpg`);
+            this.load.image(cardName, images[`${cardName}.jpg`]);
         });
     }
 

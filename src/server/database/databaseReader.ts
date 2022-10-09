@@ -1,4 +1,5 @@
 import { User, UserStatus } from "../manager/UserPlayerManager";
+import CardInstance from "../../shared/game/card/CardInstance";
 
 export default class DatabaseReader {
     loadUsers(): User[] {
@@ -17,6 +18,12 @@ export default class DatabaseReader {
             },
         ];
     }
+
+    loadUserDecks(userId: number): CardInstance[][] {
+        return null;
+    }
+
+    saveUserDeck(userId: number, deck: CardInstance[]): void {}
 
     getRunningId(): number {
         return 1;

@@ -15,7 +15,7 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|gif)$/,
                 loader: "file-loader",
-                query: {
+                options: {
                     name: "[name].[ext]",
                     outputPath: "./assets",
                 },

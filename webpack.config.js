@@ -16,7 +16,7 @@ module.exports = {
             {
                 test: /\.(png|svg|jpg|gif)$/,
                 loader: "file-loader",
-                query: {
+                options: {
                     name: "[name].[ext]",
                     outputPath: "./assets",
                 },
@@ -32,7 +32,7 @@ module.exports = {
         extensions: [".tsx", ".ts", ".js"],
     },
     output: {
-        filename: "bundle.js",
+        filename: "[name].js",
         path: path.resolve(__dirname, "dist/bundle/"),
     },
     plugins: [
